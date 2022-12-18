@@ -1,0 +1,82 @@
+This file is part of EMatrix, the C++ matrix library distribution.
+This project is licensed under the terms of the MIT license. The full text
+of the license file can be found in LICENSE.                         
+
+2022 12 17: Dog House
+	* Specialized methods for double precision 2x2 & 3x3 matrix inv & det.
+	* Small changes to Makefile
+	* C++ idiomatic copies and memsets
+	* C++ 17 g++ portability changes
+
+2020 11 06: Dog House
+	* Went though the motions of testing almost every function and path.
+	* Small changes to Makefile.
+	* A few portability change during Visual Studio testing.
+	* Changed to MIT License
+	
+2020 09 20: Dog House
+  * This is the new version of 
+  * Removed complicated build system
+  * Small portability changes
+  * Currently works with the follow compliers:
+  *   g++ (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0 
+  *   g++ (Raspbian 8.3.0-6+rpi1) 8.3.0
+  *   clang version 6.0.0-1ubuntu2 (tags/RELEASE_600/final)
+  *   clang version 7.0.1-8+rpi3 (tags/RELEASE_701/final)
+  * Version 0.1.4
+
+2005 02 09: The Joker
+  * Added matrix inversion and determinant routines via Lapack.
+  * Made matrix transpose compliant with complex numbers.
+  * Version 0.1.3
+
+2004 06 10: The Joker
+  * Deleted LU related stubs and added documentation (Doxygen)
+  * Version 0.1.2
+
+2004 06 10: The Joker
+  * No code changes; better build system.
+  * Version 0.1.1
+
+2004 05 18: The Joker
+  * The first public version of DMatrix renamed EMatrix.  The matrix inversion
+  code was remove due to copyright restrictions.  Note the first item on the
+  TODO list. 
+  * Version 0.1 
+
+2002: The Cowboy
+  * Fixed some errors in the matrix inversion routine and other functions.  The
+  matrix inversion routine at this time was adapted from Numerical Recipes in C
+  for real and complex numbers.
+  
+2001: The Joker
+  * CMatrix was rewritten again with even more template capability; i.e. the
+  code looked something like DMatrix< double, 3, 4 >.  The name was changed to
+  DMatrix to facilitate the change over of much code already written using
+  CMatrix.  As DMatrix was headed towards embedded software applications, 
+	static memory and compile time error checking were favored instead of 
+	flexibility.
+  
+2000: The Joker
+  * Added a block memory manager to the CMatrix dynamic memory allocation
+  system.  This was a fair speed improvement.  No fancy (at the time) C++ 
+  tricks like placement new.
+
+1999: The Joker
+  * Mt. Baldy requested exception handling with error messages dumped to a text
+  file.  He is a Windows programmer but a good friend, enough said.
+
+In late 1997: The Joker
+  * This version, still CMatrix, was completely rewritten.  CMatrix was
+  decoupled from the rest of the software.
+  * More template capability was added so the library would work well with both
+  real and complex numbers.
+  * At this time, the software was compatible with GCC 2.7, Borland C++ 4.5 and
+  5.0, and MS Visual C++ 6.0.
+
+In the Dark Ages: The Riddler
+  * Original Version (CMatrix) running one of the Borland compilers,
+  most probably Turbo C++ 3.0 or Borland C++ 4.5.
+  * This version made minimal use of templates and used dynamic memory
+  allocation.  Tightly coupled with CMatrix was a library of functions used to
+  solve ODE's.

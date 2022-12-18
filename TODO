@@ -1,0 +1,10 @@
+This file is part of EMatrix, the C++ matrix library distribution.
+This project is licensed under the terms of the MIT license. The full text
+of the license file can be found in LICENSE.
+ 
+5. Write real test scripts comparing with python or octave
+4. More documentation
+3. More testing on matrix inverse and determinant
+2. Done 12/17/22: Add 2x2 and 3x3 matrix closed from matrix inverse.
+1. OBE  12/17/22: Add the necessary clapack files for those that do not have 
+   lapack installed Very helpful when developing in a Windows enviroment. 
