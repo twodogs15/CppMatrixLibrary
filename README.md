@@ -55,9 +55,9 @@ $ g++ readme_example.cpp -I. "-l:liblapack.so.3"
 
 ## Installation
 Place EMatrix.h in the directory of your choosing.  Tell your 
-compiler where it is. For g++, add -I\<your directory\>; see the provided 
-Makefile for an example. In your code, #include "EMatrix.h" where you need to 
-and off you go.
+compiler where it is. For g++, add -I\<your directory\>; with cmake, see the
+provided CMakeLists.txt for an example. In your code, #include "EMatrix.h" where
+you need to and off you go.
 
 ## Dependencies
 If one needs to take a matrix inverse or determinant of only 2x2 or 3x3 
