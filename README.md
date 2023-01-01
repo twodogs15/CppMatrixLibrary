@@ -37,12 +37,12 @@ comments for each method and operator as well.
 **To compile:** Use the following line if you do not have Lapack
 installed and you are only inverting 2x2 or 3x3 matrices.  
 ```bash
-$ g++ example_in_readme.cpp
+$ g++ readme_example.cpp
 ```
 If you have Lapack installed, you can use one of the following:
 ```bash
-$ g++ example_in_readme.cpp -I. -llapack -lblas 
-$ g++ example_in_readme.cpp -I. "-l:liblapack.so.3"
+$ g++ readme_example.cpp -I. -llapack -lblas 
+$ g++ readme_example.cpp -I. "-l:liblapack.so.3"
 ```  
 
 ## Installation
