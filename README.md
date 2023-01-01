@@ -33,7 +33,15 @@ more complete list of examples of usage, available functions and available
 operators, see [test_EMartrix.cpp](test_EMatrix.cpp). EMatrix.h has usage 
 comments for each method and operator as well.
 
+
 ## Compilation
+### Using CMake
+Using the **cmake system**, use the following commands:
+```bash
+$ cmake -B build && cd build && make
+```
+
+### Using the Command Line
 **To compile:** Use the following line if you do not have Lapack
 installed and you are only inverting 2x2 or 3x3 matrices.  
 ```bash
