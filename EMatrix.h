@@ -41,171 +41,175 @@ namespace ematrix {
 template < typename tData, size_t tRows, size_t tCols >
 class Matrix {
   protected:
-    // Memory allocation method
-    void matalloc (size_t iRowIndex, size_t iColIndex); // Tag:tested
-    // Number of row and columns
+    /// Matrix memory allocation/storage assignment
+    void matalloc (size_t iRowIndex, size_t iColIndex);
+    
+    /// Number of row and columns
     size_t iRows, iCols;
-    // Storage element, matalloc above assigns an array of pointers to pointers
+    
+    /// Storage elements.
+    /// matalloc above assigns an array of pointers to pointers
     tData *ij[tRows];
     tData storage[tRows*tCols];
 
   public:
 
-    //! Virtual destructor, no need though
-    virtual ~Matrix (); // Tag:tested
+    /// Virtual destructor.
+    virtual ~Matrix ();
 
-    /** Default constructor
+    /** Default constructor.
      *  Usage: Matrix<double,2,3> A;
      */
-    Matrix (); // Tag:tested
+    Matrix ();
 
-    /** Copy constructor (not to be confused with the assignment operator)
+    /** Copy constructor (not to be confused with the assignment operator).
      *  Usage: Matrix<float,2,3> A;
      *         Matrix<float,2,3> B=A;
      */
-    inline Matrix (const Matrix< tData, tRows, tCols > & R); // Tag:tested
+    Matrix (const Matrix< tData, tRows, tCols >& R);
 
-    /** Array initialize contructor
+    /** Array initialize constructor.
      *  Usage: float a[2][3] = {{1.0,2.0,3.0},{4.0,5.0,6.0}};
      *         Matrix<float,2,3> A(&a[0][0]);
      */
-    Matrix (tData* tArray); // Tag:tested
+    Matrix (tData* tArray);
 
-    /** STL list initialize contructor (C++11)
-     *  Usage: Matrix<double,3,3> A = {1.,2.,3.,0.,0.,0.,0,0,0};
+    /** STL list initialize constructor (C++11).
+     *  Usage: Matrix<double,3,3> A = {1.0,2.0,3.0,0.0,0.0,0.0,0,0,0};
+     *         Numerical typing is lose as seen above.
      */
-    Matrix (const std::initializer_list<tData>& l); // Tag:tested
+    Matrix (const std::initializer_list<tData>& l);
 
-    /** Assignment operator (not to be confused with the copy constructor)
-     *  Usage: Y = X - Z;
+    /** Assignment operator (not to be confused with the copy constructor).
+     *  Usage: C = A - B;
      */
-    inline const Matrix< tData, tRows, tCols > &operator = (const Matrix< tData, tRows, tCols > & R); // Tag:tested
+    const Matrix< tData, tRows, tCols >& operator = (const Matrix< tData, tRows, tCols >& R);
 
-    /** STL initializer_list assignment  (C++11)
+    /** STL initializer_list assignment (C++11).
      *  Usage: Matrix<double,3,2> A;
      *         A = {1.1,2.1,3.1,0.0,0.0,0.0};
-     *
      */
-    inline const Matrix< tData, tRows, tCols > &operator = (const std::initializer_list<tData>& l); // Tag:tested
+    const Matrix< tData, tRows, tCols >& operator = (const std::initializer_list<tData>& l);
 
-    /** Array assignment
+    /** Builtin C/C++ array copy to Matrix.
      *  Usage: double a[2][3] = {{1.1,2.1,3.1},{4.0,5.0,6.0}};
      *         Matrix<double,2,3> A;
      *         A.load(&a[0][0]);
-     *  Warning: Not congnizant of size, can read from unintended memory location;
+     *  Warning: Not cognizant of size, can read from unintended memory location,
+     *           but does use the safer c++ idiomatic copy.
      */
-    void load(const tData* tArray); // Tag:tested consider changing to memset
+    void memset(const tData* tArray);
 
-    /** C like element access (0 to n-1), get and set.
+    /** C/C++ like element access (0 to n-1), get and set.
      *  Usage: Matrix<double,3,2> A = {1,2,3,4,5,6};
      *         A[0][0] = 7;
      *         cerr << A[2][1] << endl;
      *  Row operator returns the matrix row corresponding to iRowIndex,
      *  Warning: Does not provide column access safety.
      */
-    inline tData * operator [] (size_t iRowIndex) const { // Tag:tested
+    tData* operator [] (size_t iRowIndex) const {
         assert(iRowIndex<iRows);
         return ij[iRowIndex];
     }
 
-    /** Data access operator for Octave and FORTRAN indexing ... From 1 to n
+    /** Data access operator for Octave and FORTRAN indexing (1 to n).
      *  Note this does not imply FORTRAN memory storage
      *  Usage: Matrix<double,3,2> A = {1,2,3,4,5,6};
      *         A(1,1) = 8;
      *         cerr << A(3,2) << endl;
-     *  Note this looks similar to the deprecated memory initialize c_tor that uses va_arg.
-     *  but is not the same thing
      */
-    inline tData & operator () (size_t iRowIndex, size_t iColIndex) const; // Tag:tested
+    tData& operator () (size_t iRowIndex, size_t iColIndex) const;
 
-    /** Vector Data access operator for Octave and FORTRAN indexing ... From 1 to n
+    /** Vector Data access operator for Octave and FORTRAN indexing (1 to n).
      *  Usage: Matrix<double,6,1> V = {1,2,3,4,5,6}; V(1) = 8; cerr << V(6) << endl;
      *  Usage: Matrix<double,1,6> U = {1,2,3,4,5,6}; U(1) = 8; cerr << U(6) << endl;
      *  Note a non 1xn or nx1 matrix will assertion fail.  Could not determine a way
      *  to force compile time error.
      */
-    inline tData & operator () (size_t iIndex) const; // Tag:tested
+    tData& operator () (size_t iIndex) const;
 
-    /** Overloaded output stream operator <<
+    /** Overloaded output stream operator <<.
      *  Usage: log_file << A;
      */
     template < class tData0, size_t tRows0, size_t tCols0 >
-    friend std::ostream& operator << (std::ostream& s,const Matrix< tData0, tRows0, tCols0 >& A);// Tag:tested
+    friend std::ostream& operator << (std::ostream& s,const Matrix< tData0, tRows0, tCols0 >& A);
 
-    /** Get the storage pointer for the data in the matrix
+    /** Get the storage pointer for the data in the matrix.
      *  This is really only here for the friend functions
      *  Try not to use it
      *  Usage: tData* ptr = A.pIJ();
      */
-    inline tData *pIJ (void) const { // Tag:tested
+    tData* pIJ (void) const {
         return ij[0];
     }
 
-    /** Get the number of rows in a matrix
+    /** Get the number of rows in a matrix.
      *  Usage: size_t i = A.rows();
      */
-    inline size_t rows (void) const { // Tag:tested
+    size_t rows (void) const {
         return iRows;
     }
 
-    /** Get the number of cols in a matrix
+    /** Get the number of cols in a matrix.
      *  Usage: size_t i = A.cols();
      */
-    inline size_t cols (void) const { // Tag:tested
+    size_t cols (void) const {
         return iCols;
     }
 
-    /** Boolean == operator
+    /** Boolean == operator.
      *  Usage: if (A == B) ...
      */
-    bool operator == (Matrix< tData, tRows, tCols > & R); // Tag:tested
+    bool operator == (Matrix< tData, tRows, tCols >& R);
 
-    /** Boolean != operator
+    /** Boolean != operator.
      *  Usage: if (A != B) ...
      */
-    bool operator != (Matrix< tData, tRows, tCols > & R); // Tag:tested
+    bool operator != (Matrix< tData, tRows, tCols >& R);
 
-    /** Unary + operator
+    /** Unary + operator.
      *  Usage: C = (+B); Just returns *this;
      */
-    Matrix< tData, tRows, tCols > operator + (); // Tag:tested
+    Matrix< tData, tRows, tCols > operator + ();
 
-    /** Unary - operator
+    /** Unary - operator.
      *  Usage: C = (-A);
      */
-    Matrix< tData, tRows, tCols > operator - (); // Tag:tested
+    Matrix< tData, tRows, tCols > operator - ();
 
-    /** Addition operator
+    /** Addition operator.
      *  Usage: C = A + B;
      */
-    Matrix< tData, tRows, tCols > operator + (const Matrix< tData, tRows, tCols > & R); // Tag:tested
+    Matrix< tData, tRows, tCols > operator + (const Matrix< tData, tRows, tCols >& R);
 
-    /** Subtaction operator
+    /** Subtraction operator.
      *  Usage: C = A - B;
      */
-    Matrix< tData, tRows, tCols > operator - (const Matrix< tData, tRows, tCols > & R); // Tag:tested
+    Matrix< tData, tRows, tCols > operator - (const Matrix< tData, tRows, tCols >& R);
 
-    /** Scalar multiplication operator
+    /** Scalar multiplication operator.
      *  Usage: C = A * scalar;
      */
-    Matrix< tData, tRows, tCols > operator * (const tData & scalar); // Tag:tested
+    Matrix< tData, tRows, tCols > operator * (const tData& scalar);
 
-    /** Friend scalar multiplication operator
+    /** Friend scalar multiplication operator.
      *  Usage: C = scalar * A;
      */
     template< class tData0, size_t tRows0, size_t tCols0 >
-    friend Matrix< tData0, tRows0, tCols0 > operator * (const tData0 & scalar,const Matrix< tData0, tRows0, tCols0 > & R); // Tag:tested
+    friend Matrix< tData0, tRows0, tCols0 > operator * (const tData0& scalar,const Matrix< tData0, tRows0, tCols0 >& R);
 
-    /** Scalar division operator
+    /** Scalar division operator.
      *  Usage: C = A / scalar;
      */
-    Matrix< tData, tRows, tCols > operator / (const tData & scalar); // Tag:tested
+    Matrix< tData, tRows, tCols > operator / (const tData& scalar);
 
-    /** Matrix multiplication operator
+    /** Matrix multiplication operator.
      *  Usage: C = A * B;
+     *  Note that the full implementation is here in the class declaration
+     *  to support template compiler checking of dimensions.
      */
     template < size_t tColsR >
-    Matrix< tData, tRows, tColsR > operator * (const Matrix< tData, tCols, tColsR >& R) { // Tag:tested
+    Matrix< tData, tRows, tColsR > operator * (const Matrix< tData, tCols, tColsR >& R) {
         tData x;
         Matrix< tData, tRows, tColsR > Result;
 
@@ -221,76 +225,78 @@ class Matrix {
         return Result;
     }
 
-    /** Array multiplication operator
+    /** Array multiplication operator.
      *  Usage: C = (A *= B); Must use parentheses
      *  This mimics Octave's A .* B operator and not C's x *= 5 operator
      */
-    Matrix< tData, tRows, tCols > operator *= (const Matrix< tData, tRows, tCols >  & R); // Tag:tested
+    Matrix< tData, tRows, tCols > operator *= (const Matrix< tData, tRows, tCols >& R);
 
-    /** Array division operator
+    /** Array division operator.
      *  Usage: C = (A /= B); Must use parentheses
      *  This mimics Octave's A ./ B operator and not C's x /= 5 operator
      */
-    Matrix< tData, tRows, tCols > operator /= (const Matrix< tData, tRows, tCols >  & R); // Tag:tested
+    Matrix< tData, tRows, tCols > operator /= (const Matrix< tData, tRows, tCols >& R);
 
-    /** Concatenate matrices top and botton
-     *  Usage: C = (A & B); Must use parenthesis
+    /** Concatenate matrices top and bottom.
+     *  Usage: C = (A & B); Must use parentheses
     */
     template < class tData0, size_t tCols0, size_t tRowsT, size_t tRowsB>
     friend Matrix< tData0, tRowsT+tRowsB, tCols0 > operator & (const Matrix< tData0, tRowsT, tCols0 >& Top,
-            const Matrix< tData0, tRowsB, tCols0 >& Bottom); // Tag:tested
+            const Matrix< tData0, tRowsB, tCols0 >& Bottom);
 
-    /** Concatenate matrices Left to Right
-    *   Usage: C = (A | B); Must use parenthesis
+    /** Concatenate matrices left to right.
+    *   Usage: C = (A | B); Must use parentheses
     */
     template < class tData0, size_t tRows0, size_t tColsL, size_t tColsR >
     friend Matrix< tData0, tRows0, tColsL+tColsR > operator | (const Matrix< tData0, tRows0, tColsL >& Left,
-            const Matrix< tData0, tRows0, tColsR >& Right); // Tag:tested
+            const Matrix< tData0, tRows0, tColsR >& Right);
 
-    /** Set contents to 0x0
+    /** Set contents to 0x0.
      *  Usage: A.zeros();
      */
-    Matrix< tData, tRows, tCols > zeros( void ); // Tag:tested
+    Matrix< tData, tRows, tCols > zeros(void);
 
-    /** Set contents to tData(1)
+    /** Set contents to tData(1).
      *  Usage: A.ones();
      */
-    Matrix< tData, tRows, tCols > ones( void ); // Tag:tested
+    Matrix< tData, tRows, tCols > ones(void);
 
-    /** Set contents to the identity matrix
+    /** Set contents to the identity matrix.
      *  Usage: A.eye();
      */
-    Matrix< tData, tRows, tCols > eye( void ); // Tag:tested
+    Matrix< tData, tRows, tCols > eye(void);
 
     /** Set all elements of the current matrix random ~N(0,1);
      *  Usage: u.randn();
      */
-    Matrix< tData, tRows, tCols > randn(void); // Tag:tested
+    Matrix< tData, tRows, tCols > randn(void);
 
-    // Matrix transpose and complex conjugate transpose
-    // Usage: A_trans = trans(A);
+    /** Matrix transpose and complex conjugate transpose.
+     *  Usage: A_trans = trans(A);
+     */
     template < class tData0, size_t tRows0, size_t tCols0 >
-    friend Matrix< tData0, tCols0, tRows0 > trans( const Matrix< tData0, tRows0, tCols0 >& R ); // Tag:tested
+    friend Matrix< tData0, tCols0, tRows0 > trans(const Matrix< tData0, tRows0, tCols0 >& R);
 
     template < size_t tRows0, size_t tCols0 >
-    friend Matrix< std::complex<float>, tCols0, tRows0 > trans( const Matrix< std::complex<float>, tRows0, tCols0 >& R ); // Tag:tested
+    friend Matrix< std::complex<float>, tCols0, tRows0 > trans(const Matrix< std::complex<float>, tRows0, tCols0 >& R);
 
     template < size_t tRows0, size_t tCols0 >
-    friend Matrix< std::complex<double>, tCols0, tRows0 > trans( const Matrix< std::complex<double>, tRows0, tCols0 >& R ); // Tag:tested
+    friend Matrix< std::complex<double>, tCols0, tRows0 > trans(const Matrix< std::complex<double>, tRows0, tCols0 >& R);
 
-    /** Matrix diagonal like Octave
-     * This friend function does not modify input contents.
-     * Usage: A_diag = diag(A);
+    /** Matrix diagonal like Octave.
+     *  This friend function does not modify input contents.
+     *  Usage: A_diagVectorNx1 = diag(A);
+     *         A_diagMatrixNxN = diag(A_diagVectorNx1);
+     *         A_diagMatrixMxM = diag(A_diagVector1xM)
      */
     template < class tData0, size_t tRows0 >
-    friend Matrix< tData0, tRows0, 1 > diag( const Matrix< tData0, tRows0, tRows0 >& R ); // Tag:tested
+    friend Matrix< tData0, tRows0, 1 > diag(const Matrix< tData0, tRows0, tRows0 >& R);
 
     template < class tData0, size_t tRows0 >
-    friend Matrix< tData0, tRows0, tRows0 > diag( const Matrix< tData0, tRows0, 1 >& R ); // Tag:tested
+    friend Matrix< tData0, tRows0, tRows0 > diag(const Matrix< tData0, tRows0, 1 >& R);
 
     template < class tData0, size_t tCols0 >
-    friend Matrix< tData0, tCols0, tCols0 > diag( const Matrix< tData0, 1, tCols0 >& R ); // Tag:tested
-
+    friend Matrix< tData0, tCols0, tCols0 > diag(const Matrix< tData0, 1, tCols0 >& R);
 
     /* Construct a skew symmetric matrix from a 3x1 vector.
      * w = [wx;wy;wz];
@@ -300,87 +306,87 @@ class Matrix {
      * Usage: omega_x = skew(w);
      */
     template < class tData0 >
-    friend Matrix< tData0, 3, 3 > skew( const Matrix< tData0, 3, 1 >& R ); // Tag:tested
+    friend Matrix< tData0, 3, 3 > skew(const Matrix< tData0, 3, 1 >& R);
 
-    /* Take the cross product of two 3x1 vectors
-     * Usage: a = cross(lsr,Vc);
+    /* Take the cross product of two 3x1 vectors.
+     * Usage: z = cross(x, y);
      */
     template < class tData0 >
-    friend Matrix< tData0, 3, 1 > cross( const Matrix< tData0, 3, 1 >& L, const Matrix< tData0, 3, 1 >& R ); // Tag:tested
+    friend Matrix< tData0, 3, 1 > cross(const Matrix< tData0, 3, 1 >& L, const Matrix< tData0, 3, 1 >& R);
 
-    /* Take the dot product of two 3x1 vectors
-     * Usage: (norm(x))^2 = dot(x,x);
+    /* Take the dot product of two 3x1 vectors.
+     * Usage: (norm(x))^2 = dot(x, x);
      */
     template < class tData0, size_t tRows0 >
-    friend tData0 dot( const Matrix< tData0, tRows0, 1 >& L, const Matrix< tData0, tRows0, 1 >& R ); // Tag:tested
+    friend tData0 dot(const Matrix< tData0, tRows0, 1 >& L, const Matrix< tData0, tRows0, 1 >& R);
 
     /** Take the norm of two vectors
      *  Usage: norm_a = a.n();
      */
-    tData n( void ) const; // Tag:tested
+    tData n(void) const;
 
-    /** Take the norm of two vectors
+    /** Take the norm of two vectors.
      *  Usage: norm_a = norm(a);
      */
     template < class tData0, size_t tRows0 >
-    friend tData0 norm( const Matrix< tData0, tRows0, 1 >& R ); // Tag:tested
+    friend tData0 norm(const Matrix< tData0, tRows0, 1 >& R);
 
-    /** return a unit vector in the direction of V
+    /** return a unit vector in the direction of V.
      *  Usage: u_v = V.u()
      */
-    Matrix< tData, tRows, 1 > u( void ) const; // Tag:tested
+    Matrix< tData, tRows, 1 > u(void) const;
 
-    /** Matrix inverse, must link with Lapack
+    /** Matrix inverse, must link with Lapack.
      *  Usage: A_inv = inv(A);
      */
     template < size_t tRows0 >
-    friend Matrix< float, tRows0, tRows0 > inv( const Matrix< float, tRows0, tRows0 >& R );
-
-    template < size_t tRows0>
-    friend Matrix< std::complex<float>, tRows0, tRows0 > inv( const Matrix< std::complex<float>, tRows0, tRows0 >& R );
+    friend Matrix< float, tRows0, tRows0 > inv(const Matrix< float, tRows0, tRows0 >& R);
 
     template < size_t tRows0 >
-    friend Matrix< double, tRows0, tRows0 > inv( const Matrix< double, tRows0, tRows0 >& R );
+    friend Matrix< std::complex<float>, tRows0, tRows0 > inv(const Matrix< std::complex<float>, tRows0, tRows0 >& R);
 
     template < size_t tRows0 >
-    friend Matrix< std::complex<double>, tRows0, tRows0 > inv( const Matrix< std::complex<double>, tRows0, tRows0 >& R );
+    friend Matrix< double, tRows0, tRows0 > inv(const Matrix< double, tRows0, tRows0 >& R);
 
-    /** Matrix inverse, 2x2 and 3x3 double specializations
+    template < size_t tRows0 >
+    friend Matrix< std::complex<double>, tRows0, tRows0 > inv(const Matrix< std::complex<double>, tRows0, tRows0 >& R);
+
+    /** Matrix inverse, 2x2 and 3x3 double specializations.
      *  Usage A_inv = inv(A)
      */
     friend Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >
-    inv( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R );
+    inv(const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R);
 
     friend Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >
-    inv( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R );
+    inv(const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R);
 
-    /** Matrix determinent, must link with Lapack
+    /** Matrix determinant, must link with Lapack.
      *  Usage: A_det = det(A);
      */
     template < size_t tRows0 >
-    friend float det( const Matrix< float, tRows0, tRows0 >& R );
+    friend float det(const Matrix< float, tRows0, tRows0 >& R);
 
     template < size_t tRows0 >
-    friend double det( const Matrix< double, tRows0, tRows0 >& R );
+    friend double det(const Matrix< double, tRows0, tRows0 >& R);
 
     template < size_t tRows0 >
-    friend std::complex<float> det( const Matrix< std::complex<float>, tRows0, tRows0 >& R );
+    friend std::complex<float> det(const Matrix< std::complex<float>, tRows0, tRows0 >& R);
 
     template < size_t tRows0 >
-    friend std::complex<double> det( const Matrix< std::complex<double>, tRows0, tRows0 >& R );
+    friend std::complex<double> det(const Matrix< std::complex<double>, tRows0, tRows0 >& R);
 
-    /** Matrix determinant, 2x2 and 3x3 double specializations
+    /** Matrix determinant, 2x2 and 3x3 double specializations.
      *  Usage A_det = det(A)
      */
-    friend double det( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R );
+    friend double det(const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R);
 
-    friend double det( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R );
+    friend double det(const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R);
 
 };  // EOC: End of Class
 
 
 template < class tData, size_t tRows, size_t tCols >
-void Matrix< tData, tRows, tCols >::matalloc(size_t iRowIndex, size_t iColIndex) { // Tag:tested
+void Matrix< tData, tRows, tCols >::matalloc(size_t iRowIndex, size_t iColIndex) {
     ij[0] = &storage[0];
     for (size_t iIndex = 1; iIndex < iRowIndex; iIndex++)
         ij[iIndex] = ij[iIndex - 1] + iColIndex;
@@ -390,12 +396,12 @@ void Matrix< tData, tRows, tCols >::matalloc(size_t iRowIndex, size_t iColIndex)
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols >::~Matrix() { // Tag:tested
+Matrix< tData, tRows, tCols >::~Matrix() {
     // HERE;
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols >::Matrix() // Tag:tested
+Matrix< tData, tRows, tCols >::Matrix()
     : iRows(tRows), iCols(tCols) {
     matalloc(tRows,tCols);
 
@@ -408,7 +414,7 @@ Matrix< tData, tRows, tCols >::Matrix() // Tag:tested
 }
 
 template < class tData, size_t tRows, size_t tCols >
-inline Matrix< tData, tRows, tCols >::Matrix(const Matrix & R) // Tag:tested
+Matrix< tData, tRows, tCols >::Matrix(const Matrix & R)
     : iRows (R.iRows), iCols (R.iCols) {
     matalloc(R.iRows, R.iCols);
     // Choosing idiomatic C++ over potential speed
@@ -417,7 +423,7 @@ inline Matrix< tData, tRows, tCols >::Matrix(const Matrix & R) // Tag:tested
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols >::Matrix (tData* tArray) // Tag:tested
+Matrix< tData, tRows, tCols >::Matrix (tData* tArray)
     : iRows (tRows), iCols (tCols) {
     matalloc(tRows,tCols);
     // Choosing idiomatic C++ over potential speed
@@ -426,7 +432,7 @@ Matrix< tData, tRows, tCols >::Matrix (tData* tArray) // Tag:tested
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols >::Matrix (const std::initializer_list<tData>& l) // Tag:tested
+Matrix< tData, tRows, tCols >::Matrix (const std::initializer_list<tData>& l)
     : iRows(tRows), iCols(tCols) {
     assert( iRows*iCols == l.size() );
     matalloc( iRows, iCols);
@@ -436,7 +442,7 @@ Matrix< tData, tRows, tCols >::Matrix (const std::initializer_list<tData>& l) //
 }
 
 template < class tData, size_t tRows, size_t tCols >
-inline const Matrix< tData, tRows, tCols > & Matrix< tData, tRows, tCols >::operator = (const Matrix< tData, tRows, tCols > & R) { // Tag:tested
+const Matrix< tData, tRows, tCols > & Matrix< tData, tRows, tCols >::operator = (const Matrix< tData, tRows, tCols > & R) {
     assert((iRows == R.iRows) && (iCols == R.iCols));
     if( this != &R ) {
         tData* tArray = R.ij[0];
@@ -447,7 +453,7 @@ inline const Matrix< tData, tRows, tCols > & Matrix< tData, tRows, tCols >::oper
 }
 
 template < class tData, size_t tRows, size_t tCols >
-inline const Matrix< tData, tRows, tCols>& Matrix< tData,tRows,tCols>::operator = (const std::initializer_list<tData>& l) { // Tag:tested
+const Matrix< tData, tRows, tCols>& Matrix< tData,tRows,tCols>::operator = (const std::initializer_list<tData>& l) {
     assert( iRows*iCols == l.size() );
     for(size_t i = 0; i<(iRows*iCols); i++) {
         ij[0][i] = *(l.begin() + i);
@@ -456,13 +462,13 @@ inline const Matrix< tData, tRows, tCols>& Matrix< tData,tRows,tCols>::operator 
 }
 
 template < class tData, size_t tRows, size_t tCols >
-void Matrix< tData, tRows, tCols >::load(const tData* tArray) { // Tag:tested
+void Matrix< tData, tRows, tCols >::memset(const tData* tArray) {
     // std::memcpy(storage, tArray, sizeof(storage));
     std::copy(tArray, tArray+tRows*tCols, BEGIN(storage));
 }
 
 template < class tData, size_t tRows, size_t tCols >
-inline tData & Matrix< tData, tRows, tCols >::operator () (size_t iRowIndex, size_t iColIndex) const { // Tag:tested
+tData & Matrix< tData, tRows, tCols >::operator () (size_t iRowIndex, size_t iColIndex) const {
     iRowIndex--;
     iColIndex--;
     assert(iRowIndex<iRows);
@@ -471,7 +477,7 @@ inline tData & Matrix< tData, tRows, tCols >::operator () (size_t iRowIndex, siz
 }
 
 template < class tData, size_t tRows, size_t tCols >
-inline tData & Matrix< tData, tRows, tCols >::operator () (size_t iIndex) const { // Tag:tested
+tData & Matrix< tData, tRows, tCols >::operator () (size_t iIndex) const {
     iIndex--;
     assert(iRows==1 || iCols==1);
     if(iCols == 1) {
@@ -484,7 +490,7 @@ inline tData & Matrix< tData, tRows, tCols >::operator () (size_t iIndex) const 
 }
 
 template < class tData, size_t tRows, size_t tCols >
-std::ostream& operator << (std::ostream& s,const Matrix< tData, tRows, tCols >& A) { // Tag:tested
+std::ostream& operator << (std::ostream& s,const Matrix< tData, tRows, tCols >& A) {
     // Sets new precision, returns old. Should figure out how to modify
     // without code change here.  Switch to exponential as well.
     std::streamsize old_precision = s.precision(8);
@@ -505,7 +511,7 @@ std::ostream& operator << (std::ostream& s,const Matrix< tData, tRows, tCols >& 
 }
 
 template < class tData, size_t tRows, size_t tCols >
-bool Matrix< tData, tRows, tCols >::operator == (Matrix< tData, tRows, tCols > & R) { // Tag:tested
+bool Matrix< tData, tRows, tCols >::operator == (Matrix< tData, tRows, tCols > & R) {
     tData * pLeft  = ij[0];
     tData * pRight = R.ij[0];
 
@@ -518,17 +524,17 @@ bool Matrix< tData, tRows, tCols >::operator == (Matrix< tData, tRows, tCols > &
 }
 
 template < class tData, size_t tRows, size_t tCols >
-bool Matrix< tData, tRows, tCols >::operator != (Matrix< tData, tRows, tCols > & R) { // Tag:tested
+bool Matrix< tData, tRows, tCols >::operator != (Matrix< tData, tRows, tCols > & R) {
     return !(*this == R);
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator + () { // Tag:tested
+Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator + () {
     return *this;
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator - () {  // Tag:tested
+Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator - () { 
     Matrix< tData, tRows, tCols > Result;
     tData * pLeft = ij[0];
     tData * pResult = Result.ij[0];
@@ -538,7 +544,7 @@ Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator - () {  //
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator + (const Matrix< tData, tRows, tCols > & R) { // Tag:tested
+Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator + (const Matrix< tData, tRows, tCols > & R) {
     Matrix< tData, tRows, tCols > Result;
     tData * pLeft   = ij[0];
     tData * pRight  = R.ij[0];
@@ -551,7 +557,7 @@ Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator + (const M
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator - (const Matrix< tData, tRows, tCols > & R) { // Tag:tested
+Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator - (const Matrix< tData, tRows, tCols > & R) {
     Matrix< tData, tRows, tCols >  Result;
     tData * pLeft   = ij[0];
     tData * pRight  = R.ij[0];
@@ -563,7 +569,7 @@ Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator - (const M
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator * (const tData &scalar) { // Tag:tested
+Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator * (const tData &scalar) {
     Matrix< tData, tRows, tCols >  Result = (*this);
     tData * pResult = Result.ij[0];
     for (size_t iIndex = 0; iIndex < iRows * iCols; iIndex++)
@@ -572,7 +578,7 @@ Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator * (const t
 }
 
 template < class tData, size_t tRows, size_t tCols > // friend
-Matrix< tData, tRows, tCols > operator * (const tData & scalar,const Matrix< tData, tRows, tCols > & R) { // Tag:tested
+Matrix< tData, tRows, tCols > operator * (const tData & scalar,const Matrix< tData, tRows, tCols > & R) {
     size_t iRows = R.iRows;
     size_t iCols = R.iCols;
     Matrix< tData, tRows, tCols >  Result = R;
@@ -583,7 +589,7 @@ Matrix< tData, tRows, tCols > operator * (const tData & scalar,const Matrix< tDa
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator / (const tData &scalar) { // Tag:tested
+Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator / (const tData &scalar) {
     assert(scalar);
     Matrix< tData, tRows, tCols >  Result = (*this);
     tData * pResult = Result.ij[0];
@@ -593,7 +599,7 @@ Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator / (const t
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator *= (const Matrix< tData, tRows, tCols > & R) { // Tag:tested
+Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator *= (const Matrix< tData, tRows, tCols > & R) {
     Matrix< tData, tRows, tCols > Result;
     tData * pLeft   = ij[0];
     tData * pRight  = R.ij[0];
@@ -604,7 +610,7 @@ Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator *= (const 
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator /= (const Matrix< tData, tRows, tCols > & R) { // Tag:tested
+Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator /= (const Matrix< tData, tRows, tCols > & R) {
     Matrix< tData, tRows, tCols > Result;
     tData * pLeft   = ij[0];
     tData * pRight  = R.ij[0];
@@ -618,7 +624,7 @@ Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator /= (const 
 
 template < class tData0, size_t tCols0, size_t tRowsT, size_t tRowsB>
 Matrix< tData0, tRowsT+tRowsB, tCols0 > operator & (const Matrix< tData0, tRowsT, tCols0 >& Top,
-        const Matrix< tData0, tRowsB, tCols0 >& Bottom) {  // Tag:tested
+        const Matrix< tData0, tRowsB, tCols0 >& Bottom) { 
     Matrix< tData0, tRowsT+tRowsB, tCols0 > Result;
 
     size_t i,ii,j;
@@ -636,7 +642,7 @@ Matrix< tData0, tRowsT+tRowsB, tCols0 > operator & (const Matrix< tData0, tRowsT
 
 template < class tData0, size_t tRows0, size_t tColsL, size_t tColsR >
 Matrix< tData0, tRows0, tColsL+tColsR > operator | (const Matrix< tData0, tRows0, tColsL >& Left,
-        const Matrix< tData0, tRows0, tColsR >& Right) {  // Tag:tested
+        const Matrix< tData0, tRows0, tColsR >& Right) { 
     Matrix< tData0, tRows0, tColsL+tColsR > Result;
     size_t i,j,jj;
     for(i=0; i<Left.iRows; i++)
@@ -651,14 +657,14 @@ Matrix< tData0, tRows0, tColsL+tColsR > operator | (const Matrix< tData0, tRows0
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::zeros( void ) { // Tag:tested
+Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::zeros( void ) {
     //std::memset (ij[0], 0x0, sizeof(tData) * iRows * iCols);
     std::fill(BEGIN(storage), END(storage), tData(0));
     return *this;
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::ones( void ) { // Tag:tested
+Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::ones( void ) {
     tData * pThis = ij[0];
     for (size_t iIndex = 0; iIndex < iRows * iCols; iIndex++)
         (*pThis++) = tData(1);
@@ -666,7 +672,7 @@ Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::ones( void ) { // T
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::eye( void ) { // Tag:tested
+Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::eye( void ) {
     assert(tRows==tCols);
     //std::memset (ij[0], 0x0, sizeof(tData) * iRows * iCols);
     std::fill(BEGIN(storage), END(storage), tData(0));
@@ -678,7 +684,7 @@ Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::eye( void ) { // Ta
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::randn(void) { // Tag:tested
+Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::randn(void) {
     std::default_random_engine generator;
     std::normal_distribution<tData> distribution;
     for (size_t iIndex = 0; iIndex < iRows*iCols; iIndex++) {
@@ -688,7 +694,7 @@ Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::randn(void) { // Ta
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tCols, tRows > trans( const Matrix< tData, tRows, tCols >& R ) { // Tag:tested
+Matrix< tData, tCols, tRows > trans( const Matrix< tData, tRows, tCols >& R ) {
     Matrix< tData, tCols, tRows > Result;
 
     for (size_t iIndex = 0; iIndex < tCols; iIndex++)
@@ -699,7 +705,7 @@ Matrix< tData, tCols, tRows > trans( const Matrix< tData, tRows, tCols >& R ) { 
 }
 
 template < size_t tRows, size_t tCols >
-Matrix< std::complex<float>, tCols, tRows > trans( const Matrix< std::complex<float>, tRows, tCols >& R ) { // Tag:tested
+Matrix< std::complex<float>, tCols, tRows > trans( const Matrix< std::complex<float>, tRows, tCols >& R ) {
     Matrix< std::complex<float>, tCols, tRows > Result;
 
     for (size_t iIndex = 0; iIndex < tCols; iIndex++)
@@ -710,7 +716,7 @@ Matrix< std::complex<float>, tCols, tRows > trans( const Matrix< std::complex<fl
 }
 
 template < size_t tRows, size_t tCols >
-Matrix< std::complex<double>, tCols, tRows > trans( const Matrix< std::complex<double>, tRows, tCols >& R ) { // Tag:tested
+Matrix< std::complex<double>, tCols, tRows > trans( const Matrix< std::complex<double>, tRows, tCols >& R ) {
     Matrix< std::complex<double>, tCols, tRows > Result;
 
     for (size_t iIndex = 0; iIndex < tCols; iIndex++)
@@ -721,7 +727,7 @@ Matrix< std::complex<double>, tCols, tRows > trans( const Matrix< std::complex<d
 }
 
 template < class tData, size_t tRows >
-Matrix< tData, tRows, 1 > diag( const Matrix< tData, tRows, tRows >& R ) { // Tag:tested
+Matrix< tData, tRows, 1 > diag( const Matrix< tData, tRows, tRows >& R ) {
     Matrix< tData, tRows, 1 > Result;
     for (size_t iIndex = 0; iIndex < tRows; iIndex++ ) {
         Result[iIndex][0] = R[iIndex][iIndex];
@@ -730,7 +736,7 @@ Matrix< tData, tRows, 1 > diag( const Matrix< tData, tRows, tRows >& R ) { // Ta
 }
 
 template < class tData, size_t tRows >
-Matrix< tData, tRows, tRows > diag( const Matrix< tData, tRows, 1 >& R ) { // Tag:tested
+Matrix< tData, tRows, tRows > diag( const Matrix< tData, tRows, 1 >& R ) {
     Matrix< tData, tRows, tRows > Result;
     for (size_t iIndex = 0; iIndex < tRows; iIndex++ ) {
         Result[iIndex][iIndex] = R[iIndex][0];
@@ -739,7 +745,7 @@ Matrix< tData, tRows, tRows > diag( const Matrix< tData, tRows, 1 >& R ) { // Ta
 }
 
 template < class tData, size_t tCols >
-Matrix< tData, tCols, tCols > diag( const Matrix< tData, 1, tCols >& R ) { // Tag:tested
+Matrix< tData, tCols, tCols > diag( const Matrix< tData, 1, tCols >& R ) {
     Matrix< tData, tCols, tCols > Result;
     for (size_t iIndex = 0; iIndex < tCols; iIndex++ ) {
         Result[iIndex][iIndex] = R[0][iIndex];
@@ -748,7 +754,7 @@ Matrix< tData, tCols, tCols > diag( const Matrix< tData, 1, tCols >& R ) { // Ta
 }
 
 template < class tData >
-Matrix< tData, 3, 3 > skew( const Matrix< tData, 3, 1 >& R ) { // Tag:tested
+Matrix< tData, 3, 3 > skew( const Matrix< tData, 3, 1 >& R ) {
     tData * pR  =  R.pIJ();
     tData z = tData(0);
     Matrix< tData, 3, 3 > Result = {
@@ -761,12 +767,12 @@ Matrix< tData, 3, 3 > skew( const Matrix< tData, 3, 1 >& R ) { // Tag:tested
 }
 
 template < class tData >
-Matrix< tData, 3, 1 > cross( const Matrix< tData, 3, 1 >& L, const Matrix< tData, 3, 1 >& R ) { // Tag:tested
+Matrix< tData, 3, 1 > cross( const Matrix< tData, 3, 1 >& L, const Matrix< tData, 3, 1 >& R ) {
     return skew(L)*R;
 }
 
 template < class tData, size_t tRows >
-tData dot( const Matrix< tData, tRows, 1 >& L, const Matrix< tData, tRows, 1 >& R ) { // Tag:tested
+tData dot( const Matrix< tData, tRows, 1 >& L, const Matrix< tData, tRows, 1 >& R ) {
     tData Result = tData(0);
 
     tData * pR = R.pIJ();
@@ -779,17 +785,17 @@ tData dot( const Matrix< tData, tRows, 1 >& L, const Matrix< tData, tRows, 1 >& 
 }
 
 template < class tData, size_t tRows, size_t tCols >
-tData Matrix< tData, tRows, tCols >::n( void ) const { // Tag:tested
+tData Matrix< tData, tRows, tCols >::n( void ) const {
     return std::sqrt(dot(*this,*this));
 }
 
 template < class tData, size_t tRows >
-tData norm( const Matrix< tData, tRows, 1 >& R ) { // Tag:tested
+tData norm( const Matrix< tData, tRows, 1 >& R ) {
     return std::sqrt(dot(R,R));
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, 1 > Matrix< tData, tRows, tCols >::u( void ) const { // Tag:tested
+Matrix< tData, tRows, 1 > Matrix< tData, tRows, tCols >::u( void ) const {
     tData den = n();
     assert(den != 0.0);
     Matrix< tData, tRows, 1 > Result = *this;

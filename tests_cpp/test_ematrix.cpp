@@ -90,10 +90,10 @@ int main(void) {
     }
 
     {
-        // load(tData* tArray)
+        // memset(tData* tArray)
         double a[2][3] = {{1.1,2.1,3.1},{4.0,5.0,6.0}};
         Matrix<double,3,2> A;
-        A.load(&a[0][0]);
+        A.memset(&a[0][0]);
         cerr << A << endl;
     }
 
