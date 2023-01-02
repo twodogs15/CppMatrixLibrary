@@ -24,32 +24,9 @@
 #include <algorithm>
 
 
-#define cout_octave(x) octave((cout),(x),(#x))
 #define HERE std::cerr << __FILE__ << ':' << __LINE__ << std::endl;
 
 namespace ematrix {
-
-//! These constants are from the gcc 3.2 <cmath> file (overkill??)
-namespace cnst {
-const  double PI         = 3.1415926535897932384626433832795029L;  // pi
-const  double PI_2       = 1.5707963267948966192313216916397514L;  // pi/2
-const  double RTD        = 180.0L/PI;                              // Radians to Degrees
-const  double DTR        =   1.0L/RTD;                             // Degrees to Radians
-
-/** WGS84 Earth constants:
- *  Titterton, D.H. and Weston, J.L.; <i>Strapdown Inertial Navigation
- *  Technology</i>; Peter Peregrinus Ltd.; London 1997; ISBN 0-86341-260-2; pg. 53.
- */
-const  double REQ        = 6378137.0;                              // meters
-const  double rEQ        = 6356752.3142;                           // meters
-const  double f          = 1.0/298.257223563;
-const  double ECC        = 0.0818191908426;
-const  double ECC2       = ECC*ECC;
-const  double WS         = 7.292115E-05;                           // rad/sec
-
-const  double g          = 9.78032534;                             // m/s^2
-const  double k          = 0.00193185;                             // ??
-}
 
 #define STACK_STORAGE 1
 
@@ -60,6 +37,7 @@ const  double k          = 0.00193185;                             // ??
 #define BEGIN(x) (x)
 #define END(x) (x+tRows*tCols)
 #endif
+
 template < typename tData, size_t tRows, size_t tCols >
 class Matrix {
   protected:
@@ -70,6 +48,7 @@ class Matrix {
     // Storage element, matalloc above assigns an array of pointers to pointers
     tData *ij[tRows];
     tData storage[tRows*tCols];
+
   public:
 
     //! Virtual destructor, no need though
@@ -152,26 +131,6 @@ class Matrix {
      */
     template < class tData0, size_t tRows0, size_t tCols0 >
     friend std::ostream& operator << (std::ostream& s,const Matrix< tData0, tRows0, tCols0 >& A);// Tag:tested
-
-    /** Octave text output format, complex<double>
-     *  Usage: Matrix< complex<double>,3,3 > ZA;
-     *         octave(cout,ZA,"ZA") << endl;
-     *  Can define: #define cout_octave(x) octave(cout,x,#x) for
-     *         cout_octave(ZA) << endl;
-     */
-    // This is broken but works well enough. See:
-    // https://web.mst.edu/~nmjxv3/articles/templates.html
-    template < class tData0, size_t tRows0, size_t tCols0 >
-    friend std::ostream& octave (std::ostream& s, const Matrix< tData0, tRows0, tCols0 >& A, const char* Aname);// {  // Tag:tested
-
-    /** Octave text output format, double
-     *  Usage: Matrix<double,2,3> A(&a[0][0]);
-     *         octave(cout,A,"A") << endl;
-     *  Can define: #define cout_octave(x) octave(cout,x,#x) for
-     *         cout_octave(A) << endl;
-     */
-    template < class tData0, size_t tRows0, size_t tCols0 >
-    friend std::ostream& octave (std::ostream& s, const Matrix< std::complex<tData0>, tRows0, tCols0 >& A, const char* Aname);// {  // Tag:tested
 
     /** Get the storage pointer for the data in the matrix
      *  This is really only here for the friend functions
@@ -417,18 +376,6 @@ class Matrix {
 
     friend double det( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R );
 
-    /** Simple Rotation
-     *  Usage: Rx = R(angle_rad, 'x');
-     *  Note that r_ECEF = trans(R(ws*t, 'z'))*r_ECI if ws*t is a positive rotation
-     *  about the z axis.  This is backwards on purpose.
-     */
-    template < class tData0 >
-    friend Matrix< tData0, 3, 3 > R(tData0 angle, char axis);
-    //friend Matrix< tData, 3, 3 > TIE(tData t);
-    //friend Matrix< tData, 3, 3 > TEL(tData lat_rad,tData lon_rad);
-    //friend Matrix< tData, 3, 3 > ang_to_tib(tData psi,tData the,tData phi);
-    //friend void uv_to_ae(tData *az,tData *el,Matrix< tData, 3, 1 > &u);
-
 };  // EOC: End of Class
 
 
@@ -554,28 +501,6 @@ std::ostream& operator << (std::ostream& s,const Matrix< tData, tRows, tCols >& 
     }
     s.flush();
     s.precision(old_precision);
-    return s;
-}
-
-template < class tData0, size_t tRows0, size_t tCols0 >
-std::ostream& octave (std::ostream& s, const Matrix< std::complex< tData0 >, tRows0, tCols0 >& A, const char* Aname) {  // Tag:tested
-    s << "# name: " << Aname << std::endl;
-    s << "# type: complex matrix" << std::endl;
-    s << "# rows: " << A.iRows << std::endl;
-    s << "# columns: " << A.iCols << std::endl;
-    s << A;
-    s.flush();
-    return s;
-}
-
-template < class tData0, size_t tRows0, size_t tCols0 >
-std::ostream& octave (std::ostream& s,const Matrix< tData0, tRows0, tCols0 >& A, const char* Aname) {  // Tag:tested
-    s << "# name: " << Aname << std::endl;
-    s << "# type: matrix" << std::endl;
-    s << "# rows: " << A.iRows << std::endl;
-    s << "# columns: " << A.iCols << std::endl;
-    s << A;
-    s.flush();
     return s;
 }
 
@@ -1104,64 +1029,6 @@ std::complex<double> det( const Matrix< std::complex<double>, tRows, tRows >& R 
         abort();
     }
     return result;
-}
-
-template < class tData >
-Matrix< tData, 3, 3 > R(tData angle, char axis) {
-    assert(axis == 'x' || axis == 'y' || axis == 'z');
-    Matrix< tData, 3, 3 > result;
-
-    if(axis == 'x') {
-        result = {1.0,0.0,0.0,0.0,cos(angle),-sin(angle),0.0,sin(angle), cos(angle)};
-    } else if(axis=='y') {
-        result = {cos(angle),0.0,sin(angle),0.0,1.0,0.0,-sin(angle),0.0,cos(angle)};
-    } else if(axis=='z') {
-        result = {cos(angle),-sin(angle),0.0,sin(angle),cos(angle),0.0,0.0,0.0,1.0};
-    } else  {
-        abort();
-    }
-    return result;
-}
-
-template < class tData >
-Matrix< tData, 3, 3 > TIE(tData t) {
-    return R(cnst::WS*t,'z');
-}
-
-template < class tData >
-Matrix< tData, 3, 3 >  TEL(tData lat_rad,tData lon_rad) {
-    return (R(lon_rad,'z')*R(-lat_rad-cnst::PI_2,'y'));
-}
-
-template < class tData >
-Matrix< tData, 3, 3 >  ang_to_tib(tData psi,tData the,tData phi) {
-    tData a_r_psi[] = {cos(psi),-sin(psi),        0,
-                       sin(psi), cos(psi),        0,
-                       0,        0,        1
-                      };
-    Matrix< tData, 3, 3 > r_psi(a_r_psi);
-
-    tData a_r_the[] = {cos(the),        0, sin(the),
-                       0,        1,        0,
-                       -sin(the),        0, cos(the)
-                      };
-    Matrix< tData, 3, 3 > r_the(a_r_the);
-
-    tData a_r_phi[] = {       1,        0,        0,
-                              0, cos(phi),-sin(phi),
-                              0, sin(phi), cos(phi)
-                      };
-    Matrix< tData, 3, 3 > r_phi(a_r_phi);
-
-    return r_psi*r_the*r_phi;
-}
-
-template < class tData >
-void uv_to_ae(tData *az,tData *el,Matrix< tData, 3, 1 > &u) {
-    if(norm(u) != 1.0) u=u*(1.0/norm(u));
-    *az=atan2(u(2),u(1));
-    *el=asin(-u(3));
-    return;
 }
 
 } // from namespace

@@ -155,12 +155,10 @@ int main(void) {
     */
 
     {
-        // friend std::ostream& octave (std::ostream& s, const Matrix< std::complex<double> , tRows0, tCols0 >& A, const char* Aname) {
-        // friend std::ostream& octave (std::ostream& s, const Matrix< double , tRows0, tCols0 >& A, const char* Aname) {
         double a[2][3] = {{1.40,2.40,3.40},{4.40,5.40,6.40}};
         Matrix<double,2,3> A(&a[0][0]);
 
-        cout_octave(A) << endl;
+        cerr << A << endl;
 
         Matrix< complex<double>,3,3 > ZA;
         ZA[0][0] = complex<double>( 3.1,-1.8);
@@ -172,7 +170,7 @@ int main(void) {
         ZA[2][0] = complex<double>( 3.4,-4.0);
         ZA[2][1] = complex<double>( 7.2, 2.9);
         ZA[2][2] = complex<double>(-8.8, 3.2);
-        octave(cerr,ZA,"za") << endl;
+
         Matrix< complex<double>,3,3 > ZAinv = inv(ZA);
         //octave(cout,ZA,"za") << endl;
         //cerr << trans(ZA) << endl;
@@ -321,8 +319,8 @@ int main(void) {
         ZA[1][0] = complex<double>( 1.0, 0.0);
         ZA[1][1] = complex<double>(-6.9, 3.2);
         ZA[1][2] = complex<double>( 5.8, 2.2);
-        cout_octave(ZA) << endl;
-        cout_octave(trans(ZA)) << endl;
+        cerr << ZA << endl;
+        cerr << trans(ZA) << endl;
 
         Matrix< complex<float>,3,2> ZB;
         ZB[0][0] = complex<float>( 3.1f,-1.8f);
@@ -374,12 +372,10 @@ int main(void) {
     }
 
     {
-        // friend std::ostream& octave (std::ostream& s, const Matrix< std::complex<double> , tRows0, tCols0 >& A, const char* Aname) {
-        // friend std::ostream& octave (std::ostream& s, const Matrix< double , tRows0, tCols0 >& A, const char* Aname) {
         double a[2][3] = {{1.40,2.40,3.40},{4.40,5.40,6.40}};
         Matrix<double,2,3> A(&a[0][0]);
 
-        cout_octave(A) << endl;
+        cerr << A << endl;
 
         Matrix< complex<double>,3,3 > ZA;
         ZA[0][0] = complex<double>( 3.1,-1.8);
@@ -391,21 +387,18 @@ int main(void) {
         ZA[2][0] = complex<double>( 3.4,-4.0);
         ZA[2][1] = complex<double>( 7.2, 2.9);
         ZA[2][2] = complex<double>(-8.8, 3.2);
-        octave(cout,ZA,"za") << endl;
+
         Matrix< complex<double>,3,3 > ZAinv = inv(ZA);
-        octave(cout,ZAinv,"za") << endl;
 
         cerr << det(ZA) << endl;
         cerr << det(trans(ZA)) << endl;
     }
 
     {
-        // friend std::ostream& octave (std::ostream& s, const Matrix< std::complex<double> , tRows0, tCols0 >& A, const char* Aname) {
-        // friend std::ostream& octave (std::ostream& s, const Matrix< double , tRows0, tCols0 >& A, const char* Aname) {
         float a[2][3] = {{1.40f,2.40f,3.40f},{4.40f,5.40f,6.40f}};
         Matrix<float,2,3> A(&a[0][0]);
 
-        cout_octave(A) << endl;
+        cerr << A << endl;
 
         Matrix< complex<float>,3,3 > ZC;
         ZC[0][0] = complex<float>( 3.1f,-1.8f);
@@ -417,9 +410,8 @@ int main(void) {
         ZC[2][0] = complex<float>( 3.4f,-4.0f);
         ZC[2][1] = complex<float>( 7.2f, 2.9f);
         ZC[2][2] = complex<float>(-8.8f, 3.2f);
-        octave(cout,ZC,"zc") << endl;
+
         Matrix< complex<float>,3,3 > ZCinv = inv(ZC);
-        octave(cout,ZCinv,"zc") << endl;
 
         cerr << det(ZC) << endl;
         cerr << det(trans(ZC)) << endl;
