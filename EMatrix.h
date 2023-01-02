@@ -1,6 +1,6 @@
 /** This file is part of EMatrix, the C++ matrix library distribution.
  *  This project is licensed under the terms of the MIT license. The full text
- *  of the license file can be found in LICENSE.                         
+ *  of the license file can be found in LICENSE.
  */
 
 /// \file
@@ -62,7 +62,7 @@ const  double k          = 0.00193185;                             // ??
 #endif
 template < typename tData, size_t tRows, size_t tCols >
 class Matrix {
-protected:
+  protected:
     // Memory allocation method
     void matalloc (size_t iRowIndex, size_t iColIndex); // Tag:tested
     // Number of row and columns
@@ -70,7 +70,7 @@ protected:
     // Storage element, matalloc above assigns an array of pointers to pointers
     tData *ij[tRows];
     tData storage[tRows*tCols];
-public:
+  public:
 
     //! Virtual destructor, no need though
     virtual ~Matrix (); // Tag:tested
@@ -389,11 +389,11 @@ public:
     /** Matrix inverse, 2x2 and 3x3 double specializations
      *  Usage A_inv = inv(A)
      */
-    friend Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) > 
-        inv( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R ); 
+    friend Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >
+    inv( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R );
 
-    friend Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) > 
-        inv( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R ); 
+    friend Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >
+    inv( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R );
 
     /** Matrix determinent, must link with Lapack
      *  Usage: A_det = det(A);
@@ -413,9 +413,9 @@ public:
     /** Matrix determinant, 2x2 and 3x3 double specializations
      *  Usage A_det = det(A)
      */
-    friend double det( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R ); 
+    friend double det( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R );
 
-    friend double det( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R ); 
+    friend double det( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R );
 
     /** Simple Rotation
      *  Usage: Rx = R(angle_rad, 'x');
@@ -452,7 +452,7 @@ Matrix< tData, tRows, tCols >::Matrix() // Tag:tested
     : iRows(tRows), iCols(tCols) {
     matalloc(tRows,tCols);
 
-    // On some systems, 2 can be much faster that 1 (30x) but we will favor 
+    // On some systems, 2 can be much faster that 1 (30x) but we will favor
     // more idiomatic C++ until such time as speed is important.  Also, memset
     // is not correct when using non built-in types, e.g. complex<double>.
     // 1. std::memset (storage, 0x0, sizeof(storage));
@@ -492,7 +492,9 @@ template < class tData, size_t tRows, size_t tCols >
 inline const Matrix< tData, tRows, tCols > & Matrix< tData, tRows, tCols >::operator = (const Matrix< tData, tRows, tCols > & R) { // Tag:tested
     assert((iRows == R.iRows) && (iCols == R.iCols));
     if( this != &R ) {
-        std::memcpy (ij[0], R.ij[0], sizeof(tData)*iRows*iCols);
+        tData* tArray = R.ij[0];
+        // std::memcpy (ij[0], R.ij[0], sizeof(tData)*iRows*iCols);
+        std::copy(tArray, tArray+tRows*tCols, BEGIN(storage));
     }
     return *this;
 }
@@ -508,15 +510,16 @@ inline const Matrix< tData, tRows, tCols>& Matrix< tData,tRows,tCols>::operator 
 
 template < class tData, size_t tRows, size_t tCols >
 void Matrix< tData, tRows, tCols >::load(const tData* tArray) { // Tag:tested
-    std::memcpy(storage, tArray, sizeof(storage));
+    // std::memcpy(storage, tArray, sizeof(storage));
+    std::copy(tArray, tArray+tRows*tCols, BEGIN(storage));
 }
 
 template < class tData, size_t tRows, size_t tCols >
 inline tData & Matrix< tData, tRows, tCols >::operator () (size_t iRowIndex, size_t iColIndex) const { // Tag:tested
     iRowIndex--;
     iColIndex--;
-    assert(0<=iRowIndex && iRowIndex<iRows);
-    assert(0<=iColIndex && iColIndex<iCols);
+    assert(iRowIndex<iRows);
+    assert(iColIndex<iCols);
     return ij[iRowIndex][iColIndex];
 }
 
@@ -525,10 +528,10 @@ inline tData & Matrix< tData, tRows, tCols >::operator () (size_t iIndex) const 
     iIndex--;
     assert(iRows==1 || iCols==1);
     if(iCols == 1) {
-        assert(0<=iIndex && iIndex<iRows);
+        assert(iIndex<iRows);
         return ij[iIndex][0];
     } else { // (iRows == 1)
-        assert(0<=iIndex && iIndex<iCols);
+        assert(iIndex<iCols);
         return ij[0][iIndex];
     }
 }
@@ -725,7 +728,7 @@ Matrix< tData0, tRows0, tColsL+tColsR > operator | (const Matrix< tData0, tRows0
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::zeros( void ) { // Tag:tested
     //std::memset (ij[0], 0x0, sizeof(tData) * iRows * iCols);
-	std::fill(BEGIN(storage), END(storage), tData(0));
+    std::fill(BEGIN(storage), END(storage), tData(0));
     return *this;
 }
 
@@ -741,7 +744,7 @@ template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::eye( void ) { // Tag:tested
     assert(tRows==tCols);
     //std::memset (ij[0], 0x0, sizeof(tData) * iRows * iCols);
-	std::fill(BEGIN(storage), END(storage), tData(0));
+    std::fill(BEGIN(storage), END(storage), tData(0));
 
     tData * pThis = ij[0];
     for (size_t iIndex = 0; iIndex < iRows; iIndex++, pThis+=iCols)
@@ -935,41 +938,42 @@ Matrix< double, tRows, tRows > inv( const Matrix< double, tRows, tRows >& R ) {
 }
 
 // Specialized 2x2 and 3x3 double variants generated from sympy
-// Would you like to know more? Click here: https://docs.sympy.org/latest/index.html 
+// Would you like to know more? Click here: https://docs.sympy.org/latest/index.html
 //   >>> from sympy import symbols, Matrix, pprint
 //   >>> a,b,c,d,e,f,g,h,i = symbols('a b c d e f g h i')
 //   >>> A = Matrix([[a,b,c],[d,e,f],[g,h,i]])
-//   >>> pprint(A.adjugate()); pprint(A.det()) 
-Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) > 
-inv( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R ) { 
+//   >>> pprint(A.adjugate()); pprint(A.det())
+Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >
+inv( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R ) {
     double the_det = det(R);
 
     if(std::abs(the_det) < FLT_EPSILON) {
         std::cerr << "matrix near singular" << std::endl;
         abort();
     }
-    
+
     Matrix< double, 2, 2 > M = {R[1][1], -R[0][1], -R[1][0], R[0][0]};
     return((1.0/the_det)*M);
-} 
+}
 
-Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) > 
-inv( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R ) { 
+Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >
+inv( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R ) {
     double the_det = det(R);
 
     if(std::abs(the_det) < FLT_EPSILON) {
         std::cerr << "matrix near singular" << std::endl;
         abort();
     }
-    
-    Matrix< double, 3, 3 > M = {R[1][1]*R[2][2] - R[1][2]*R[2][1], 
-        -R[0][1]*R[2][2] + R[0][2]*R[2][1], R[0][1]*R[1][2] - R[0][2]*R[1][1], 
-        -R[1][0]*R[2][2] + R[1][2]*R[2][0], R[0][0]*R[2][2] - R[0][2]*R[2][0], 
-        -R[0][0]*R[1][2] + R[0][2]*R[1][0], R[1][0]*R[2][1] - R[1][1]*R[2][0], 
-        -R[0][0]*R[2][1] + R[0][1]*R[2][0], R[0][0]*R[1][1] - R[0][1]*R[1][0]};
 
-   return((1.0/the_det)*M);
-} 
+    Matrix< double, 3, 3 > M = {R[1][1]*R[2][2] - R[1][2]*R[2][1],
+                                -R[0][1]*R[2][2] + R[0][2]*R[2][1], R[0][1]*R[1][2] - R[0][2]*R[1][1],
+                                -R[1][0]*R[2][2] + R[1][2]*R[2][0], R[0][0]*R[2][2] - R[0][2]*R[2][0],
+                                -R[0][0]*R[1][2] + R[0][2]*R[1][0], R[1][0]*R[2][1] - R[1][1]*R[2][0],
+                                -R[0][0]*R[2][1] + R[0][1]*R[2][0], R[0][0]*R[1][1] - R[0][1]*R[1][0]
+                               };
+
+    return((1.0/the_det)*M);
+}
 
 template < size_t tRows >
 Matrix< std::complex<double>, tRows, tRows > inv( const Matrix< std::complex<double>, tRows, tRows >& R ) {
@@ -1066,19 +1070,19 @@ double det( const Matrix< double, tRows, tRows >& R ) {
 }
 
 // Specialized 2x2 and 3x3 double variants generated from sympy
-// Would you like to know more? Click here: https://docs.sympy.org/latest/index.html 
+// Would you like to know more? Click here: https://docs.sympy.org/latest/index.html
 //   >>> from sympy import symbols, Matrix, pprint
 //   >>> a,b,c,d,e,f,g,h,i = symbols('a b c d e f g h i')
 //   >>> A = Matrix([[a,b,c],[d,e,f],[g,h,i]])
-//   >>> pprint(A.det()) 
-double det( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R ) { 
+//   >>> pprint(A.det())
+double det( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R ) {
     return( R[0][0]*R[1][1] - R[0][1]*R[1][0] );
-} 
+}
 
-double det( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R ) { 
-   return( R[0][0]*R[1][1]*R[2][2] - R[0][0]*R[1][2]*R[2][1] - R[0][1]*R[1][0]*R[2][2] + 
-        R[0][1]*R[1][2]*R[2][0] + R[0][2]*R[1][0]*R[2][1] - R[0][2]*R[1][1]*R[2][0] );
-}   
+double det( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R ) {
+    return( R[0][0]*R[1][1]*R[2][2] - R[0][0]*R[1][2]*R[2][1] - R[0][1]*R[1][0]*R[2][2] +
+            R[0][1]*R[1][2]*R[2][0] + R[0][2]*R[1][0]*R[2][1] - R[0][2]*R[1][1]*R[2][0] );
+}
 
 template < size_t tRows >
 std::complex<double> det( const Matrix< std::complex<double>, tRows, tRows >& R ) {
