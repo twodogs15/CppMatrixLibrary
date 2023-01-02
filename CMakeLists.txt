@@ -25,6 +25,8 @@ add_compile_options(-Wall -Wextra -pedantic -Wno-unused-parameter
                     -Wno-unused-variable -Wno-unused-function -fmax-errors=2)
 
 add_subdirectory(tests_cpp)
+add_subdirectory(tests_py)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(readme_example.exe readme_example.cpp)
