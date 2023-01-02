@@ -23,8 +23,11 @@
 #include <limits>
 #include <algorithm>
 
-
-#define HERE std::cerr << __FILE__ << ':' << __LINE__ << std::endl;
+#ifdef TESTING
+#define HERE(x) std::cerr << (x) << ':' << __FILE__ << ':' << __LINE__ << std::endl;
+#else
+#define HERE
+#endif
 
 namespace ematrix {
 
@@ -53,22 +56,23 @@ class Matrix {
     tData storage[tRows*tCols];
 
   public:
+    // Numeric labeling m1 - m? are identifiers to help keep track of testing
 
-    /// Virtual destructor.
+    /// [m0] Virtual destructor.
     virtual ~Matrix ();
 
-    /** Default constructor.
+    /** [m1] Default constructor.
      *  Usage: Matrix<double,2,3> A;
      */
     Matrix ();
 
-    /** Copy constructor (not to be confused with the assignment operator).
+    /** [m2] Copy constructor (not to be confused with the assignment operator).
      *  Usage: Matrix<float,2,3> A;
      *         Matrix<float,2,3> B=A;
      */
     Matrix (const Matrix< tData, tRows, tCols >& R);
 
-    /** Array initialize constructor.
+    /** Memory, i.e. pointer or array, initialize constructor.
      *  Usage: float a[2][3] = {{1.0,2.0,3.0},{4.0,5.0,6.0}};
      *         Matrix<float,2,3> A(&a[0][0]);
      */
@@ -397,7 +401,7 @@ void Matrix< tData, tRows, tCols >::matalloc(size_t iRowIndex, size_t iColIndex)
 
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::~Matrix() {
-    // HERE;
+    HERE("[m0] ~Matrix()");
 }
 
 template < class tData, size_t tRows, size_t tCols >
