@@ -5,7 +5,8 @@ import numpy as np
 import unittest
 
 import sys
-sys.path.insert(0, './build/glue')
+sys.path.insert(0, '../build/tests_py')
+
 import code
 
 class TestSum(unittest.TestCase):
@@ -46,6 +47,7 @@ class TestSum(unittest.TestCase):
 
 if __name__ == '__main__':    
     m1 = np.array([[1, 2, 3], [4, 5, 6]]).astype(np.float64)
-    code.f(m1)
+    a = code.f(m1)
+    print( np.array(a) )
     unittest.main()
 

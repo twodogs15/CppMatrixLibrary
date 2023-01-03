@@ -423,6 +423,8 @@ int main(void) {
         cerr << inv(A) << endl;
         cerr << inv(B) << endl;
         cerr << det(A) << endl;
+        Matrix< double, 4, 4 > C; C.randn();
+        cerr << det(C) << endl;
     }
 
     {

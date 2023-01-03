@@ -26,7 +26,7 @@
 #ifdef TESTING
 #define HERE(x) std::cerr << (x) << ':' << __FILE__ << ':' << __LINE__ << std::endl;
 #else
-#define HERE
+#define HERE(x)
 #endif
 
 namespace ematrix {
@@ -52,7 +52,7 @@ class Matrix {
     
     /// Storage elements.
     /// matalloc above assigns an array of pointers to pointers
-    tData *ij[tRows];
+    tData* ij[tRows];
     tData storage[tRows*tCols];
 
   public:

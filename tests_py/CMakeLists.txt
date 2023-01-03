@@ -27,6 +27,5 @@ set(SOURCES test_EMatrix.cpp)
 
 pybind11_add_module(code ${SOURCES}) 
 
-#set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-#add_executable(test_compilation_errors.exe test_compilation_errors.cpp)
-
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+pybind11_add_module(test_ctors test_ctors.cpp) 

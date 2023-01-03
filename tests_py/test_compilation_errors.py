@@ -38,6 +38,8 @@ class TestCompilation(unittest.TestCase):
         pass_00 = re.compile(r'\[m0\]').match(child.stderr)
         self.assertIsNot(pass_00, None)
 
+        child = sp.run(['/bin/rm', '-f', './a.out'])
+
     def test_fail_M1(self):
         failCases = ['A', 'B', 'C', 'D', 'E']
         self.iterateFailCase(failCases)
