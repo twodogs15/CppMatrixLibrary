@@ -12,7 +12,7 @@ import inspect
 
 class TestCompilation(unittest.TestCase):
 
-    def iterateFailCase(self, failCases, devNull = True):
+    def iterateFailCase(self, failCases, devNull=True):
         caller = inspect.stack()[1][3]
         base = re.compile(r'test_fail_(M\d*)').match(caller)
         caseBase = base.group(1)
@@ -22,9 +22,11 @@ class TestCompilation(unittest.TestCase):
                 tag = f'FAIL_{caseBase}_{case}'
                 print(f'Test Case: {tag}')
                 if devNull == True:
-                    child = sp.run(['g++', '-std=c++17', '-fsyntax-only', '-DTESTING', f'-D{tag}', '-I..', 'test_compilation_errors.cpp'], stdout=sp.DEVNULL, stderr=sp.STDOUT)
+                    child = sp.run(['g++', '-std=c++17', '-fsyntax-only', '-DTESTING',
+                                    f'-D{tag}', '-I..', 'test_compilation_errors.cpp'], stdout=sp.DEVNULL, stderr=sp.STDOUT)
                 else:
-                    child = sp.run(['g++', '-std=c++17', '-fsyntax-only', '-DTESTING', f'-D{tag}', '-I..', 'test_compilation_errors.cpp'], stderr=sp.STDOUT)
+                    child = sp.run(['g++', '-std=c++17', '-fsyntax-only', '-DTESTING',
+                                    f'-D{tag}', '-I..', 'test_compilation_errors.cpp'], stderr=sp.STDOUT)
                 rc = child.returncode
                 self.assertNotEqual(rc, 0)
 
@@ -47,6 +49,7 @@ class TestCompilation(unittest.TestCase):
     def test_fail_M2(self):
         failCases = ['A', 'B', 'C']
         self.iterateFailCase(failCases)
+
 
 if __name__ == '__main__':
     unittest.main()
