@@ -19,8 +19,10 @@
 #include <fstream>
 #include <iostream>
 #include <initializer_list>
+#include <type_traits>
 #include <random>
 #include <limits>
+#include <utility>
 #include <algorithm>
 
 #ifdef TESTING
@@ -46,15 +48,24 @@ class Matrix {
   protected:
     /// Matrix memory allocation/storage assignment
     void matalloc (size_t iRowIndex, size_t iColIndex);
-    
+
     /// Number of row and columns
     size_t iRows, iCols;
-    
+
     /// Storage elements.
     /// matalloc above assigns an array of pointers to pointers
+#if STACK_STORAGE
     tData* ij[tRows];
     tData storage[tRows*tCols];
-
+  public:
+    Matrix (Matrix< tData, tRows, tCols > && R) = default;
+#else
+    tData** ij;
+    tData*  storage;
+  public:
+    Matrix (Matrix< tData, tRows, tCols > && R) noexcept;
+    Matrix< tData, tRows, tCols > &operator = (Matrix< tData, tRows, tCols > && R) noexcept;
+#endif
   public:
     // Numeric labeling m1 - m? are identifiers to help keep track of testing
 
@@ -76,7 +87,7 @@ class Matrix {
      *  Usage: float a[2][3] = {{1.0,2.0,3.0},{4.0,5.0,6.0}};
      *         Matrix<float,2,3> A(&a[0][0]);
      */
-    Matrix (tData* tArray);
+    Matrix (const tData* tArray);
 
     /** STL list initialize constructor (C++11).
      *  Usage: Matrix<double,3,3> A = {1.0,2.0,3.0,0.0,0.0,0.0,0,0,0};
@@ -101,8 +112,45 @@ class Matrix {
      *         A.load(&a[0][0]);
      *  Warning: Not cognizant of size, can read from unintended memory location,
      *           but does use the safer c++ idiomatic copy.
+	 */
+	 void load(const tData* tArray); // consider changing to memset?
+	 
+    /** Submatrix assignment (n-1) based
+     *  Usage: Matrix< double, 3, 6> A;
+     *         Matrix< double, 2, 3> one2six = {1,2,3,4,5,6};
+     *         A.submatrix(0,2,one2six);
+     *  Results: [0  0  1  2  3  0
+     *            0  0  4  5  6  0
+     *            0  0  0  0  0  0]
      */
-    void memset(const tData* tArray);
+    template < size_t tRows0, size_t tCols0 >
+    void submatrix(size_t insertRow, size_t insertCol, const Matrix< tData, tRows0, tCols0>& rval);
+
+    /** Submatrix extraction (n-1) based
+     *  Usage: Matrix< double, 3, 6 > A;
+     *         Matrix< double, 2, 3 > one2six = {1,2,3,4,5,6};
+     *         A.submatrix(0,2,one2six);
+     *         Matrix< double, 2, 2 > B;
+     *         // Need to specify the return size in the template, <2,2> below
+     *         B = A.submatrix< 2, 2 >(1,3);
+     *
+     *  Results: A = [0  0  1  2  3  0
+     *                0  0  4  5  6  0
+     *                0  0  0  0  0  0];
+     *
+     *           B = [5  6
+     *                0  0];
+     */
+
+    template < size_t tRows0, size_t tCols0 >
+    Matrix< tData, tRows0, tCols0> submatrix(size_t insertRow, size_t insertCol);
+
+    /** memcpy to C-Style Array
+     *  Usage: float x[2][3];
+     *         Matrix<double,2,3> X;
+     *         X.memcpy(&x[0]);
+     */
+    void memcpy(tData* tArray);
 
     /** C/C++ like element access (0 to n-1), get and set.
      *  Usage: Matrix<double,3,2> A = {1,2,3,4,5,6};
@@ -184,7 +232,7 @@ class Matrix {
     /** Addition operator.
      *  Usage: C = A + B;
      */
-    Matrix< tData, tRows, tCols > operator + (const Matrix< tData, tRows, tCols >& R);
+    Matrix< tData, tRows, tCols > operator + (const Matrix< tData, tRows, tCols > & R) const;
 
     /** Subtraction operator.
      *  Usage: C = A - B;
@@ -213,7 +261,7 @@ class Matrix {
      *  to support template compiler checking of dimensions.
      */
     template < size_t tColsR >
-    Matrix< tData, tRows, tColsR > operator * (const Matrix< tData, tCols, tColsR >& R) {
+    Matrix< tData, tRows, tColsR > operator * (const Matrix< tData, tCols, tColsR >& R) const {
         tData x;
         Matrix< tData, tRows, tColsR > Result;
 
@@ -229,7 +277,17 @@ class Matrix {
         return Result;
     }
 
-    /** Array multiplication operator.
+    /** Positive integer exponent of a matrix
+     *  Usage: C = A^2;
+     *      A^0 => I
+     *      A^1 => A
+     *      A^2 => A*A, etc.
+     *      max(n) = 12
+     */
+    template< class tData0, size_t tRows0 >
+    friend Matrix< tData0, tRows0, tRows0 > operator ^ (Matrix< tData0, tRows0, tRows0 > L, char n);
+
+    /** Array multiplication operator
      *  Usage: C = (A *= B); Must use parentheses
      *  This mimics Octave's A .* B operator and not C's x *= 5 operator
      */
@@ -255,7 +313,9 @@ class Matrix {
     friend Matrix< tData0, tRows0, tColsL+tColsR > operator | (const Matrix< tData0, tRows0, tColsL >& Left,
             const Matrix< tData0, tRows0, tColsR >& Right);
 
-    /** Set contents to 0x0.
+    Matrix< tData, tRows, tCols > op( tData(*fcn)(tData) );
+
+    /** Set contents to 0x0
      *  Usage: A.zeros();
      */
     Matrix< tData, tRows, tCols > zeros(void);
@@ -275,9 +335,12 @@ class Matrix {
      */
     Matrix< tData, tRows, tCols > randn(void);
 
-    /** Matrix transpose and complex conjugate transpose.
-     *  Usage: A_trans = trans(A);
+    /** Returns the real matrix transpose.  Broken for complex numbers.
+     *  Usage: A_trans = a.t();
+     *  Usage: A_trans = trans(a);
      */
+    Matrix< tData, tCols, tRows > t(void) const;
+
     template < class tData0, size_t tRows0, size_t tCols0 >
     friend Matrix< tData0, tCols0, tRows0 > trans(const Matrix< tData0, tRows0, tCols0 >& R);
 
@@ -340,7 +403,13 @@ class Matrix {
      */
     Matrix< tData, tRows, 1 > u(void) const;
 
-    /** Matrix inverse, must link with Lapack.
+    /** returns the matrix exponential e^A computed by Taylor series
+    *   Usage: e_to_the_A = expm(A)
+    */
+    template < class tData0, size_t tRows0 >
+    friend Matrix< tData0, tRows0, tRows0 > expm( const Matrix< tData0, tRows0, tRows0 >& R );
+
+    /** Matrix inverse, must link with Lapack
      *  Usage: A_inv = inv(A);
      */
     template < size_t tRows0 >
@@ -388,21 +457,80 @@ class Matrix {
 
 };  // EOC: End of Class
 
-
+#if STACK_STORAGE
 template < class tData, size_t tRows, size_t tCols >
 void Matrix< tData, tRows, tCols >::matalloc(size_t iRowIndex, size_t iColIndex) {
     ij[0] = &storage[0];
     for (size_t iIndex = 1; iIndex < iRowIndex; iIndex++)
         ij[iIndex] = ij[iIndex - 1] + iColIndex;
-
-    //std::memset (storage, 0x0, sizeof(storage));
-    std::fill(BEGIN(storage), END(storage), tData(0));
 }
 
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::~Matrix() {
-    HERE("[m0] ~Matrix()");
+    // HERE;
 }
+
+#else
+
+template < class tData, size_t tRows, size_t tCols >
+void Matrix< tData, tRows, tCols >::matalloc(size_t iRows, size_t iCols) {
+    assert(iRows&&iCols);
+
+    ij = new tData*[iRows];
+    assert(ij);
+
+    storage = new tData[iRows*iCols];
+    assert(storage);
+
+    ij[0] = storage;
+    for (size_t i = 1; i < iRows; i++)
+        ij[i] = ij[i - 1] + iCols;
+}
+
+template < class tData, size_t tRows, size_t tCols >
+Matrix< tData, tRows, tCols >::~Matrix() {
+    iRows = iCols = 0;
+    // Neet to test for the 1x1 case. Might need delete storage/ij.
+    if(storage) delete[] storage;
+    storage = nullptr;
+    if(ij) delete[] ij;
+    ij = nullptr;
+    // HERE;
+}
+
+template < class tData, size_t tRows, size_t tCols >
+Matrix< tData, tRows, tCols >::Matrix(Matrix && R) noexcept
+    : iRows{  std::exchange(R.iRows,0)},
+iCols{  std::exchange(R.iCols,0)},
+ij{     std::move(R.ij)},
+storage{std::move(R.storage)} {
+
+    R.ij = nullptr;
+    R.storage = nullptr;
+}
+
+template < class tData, size_t tRows, size_t tCols >
+Matrix< tData, tRows, tCols >& Matrix< tData, tRows, tCols >::operator =
+(Matrix< tData, tRows, tCols >&& R) noexcept {
+
+    assert((iRows == R.iRows) && (iCols == R.iCols));
+    if( this != &R ) {
+        delete[] storage;
+        delete[] ij;
+
+        iRows   = std::exchange(R.iRows,0);
+        iCols   = std::exchange(R.iCols,0);
+        storage = std::move(R.storage);
+        ij      = std::move(R.ij);
+
+        // Must set to 0/nullptr or compiler does not use as a move c'tor
+        R.storage = nullptr;
+        R.ij = nullptr;
+    }
+    return *this;
+}
+
+#endif
 
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::Matrix()
@@ -427,7 +555,7 @@ Matrix< tData, tRows, tCols >::Matrix(const Matrix & R)
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols >::Matrix (tData* tArray)
+Matrix< tData, tRows, tCols >::Matrix (const tData* tArray)
     : iRows (tRows), iCols (tCols) {
     matalloc(tRows,tCols);
     // Choosing idiomatic C++ over potential speed
@@ -438,58 +566,97 @@ Matrix< tData, tRows, tCols >::Matrix (tData* tArray)
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::Matrix (const std::initializer_list<tData>& l)
     : iRows(tRows), iCols(tCols) {
-    assert( iRows*iCols == l.size() );
+    assert( l.size() <= iRows*iCols );
     matalloc( iRows, iCols);
-    for(size_t i = 0; i<(iRows*iCols); i++) {
-        ij[0][i] = *(l.begin() + i);
+    std::fill(BEGIN(storage), END(storage), tData(0));
+    tData* pij = &storage[0];
+    for(const auto& element : l) {
+        *pij++ = element;
     }
 }
 
 template < class tData, size_t tRows, size_t tCols >
 const Matrix< tData, tRows, tCols > & Matrix< tData, tRows, tCols >::operator = (const Matrix< tData, tRows, tCols > & R) {
+    // Should not need this assert, the compiler should error out.
     assert((iRows == R.iRows) && (iCols == R.iCols));
     if( this != &R ) {
-        tData* tArray = R.ij[0];
-        // std::memcpy (ij[0], R.ij[0], sizeof(tData)*iRows*iCols);
-        std::copy(tArray, tArray+tRows*tCols, BEGIN(storage));
+        // Choosing idiomatic C++ over potential speed
+        // std::memcpy(storage, R.storage, sizeof(storage));
+        std::copy(BEGIN(R.storage), END(R.storage), BEGIN(storage));
     }
     return *this;
 }
 
 template < class tData, size_t tRows, size_t tCols >
 const Matrix< tData, tRows, tCols>& Matrix< tData,tRows,tCols>::operator = (const std::initializer_list<tData>& l) {
-    assert( iRows*iCols == l.size() );
-    for(size_t i = 0; i<(iRows*iCols); i++) {
-        ij[0][i] = *(l.begin() + i);
+    assert( l.size() <= iRows*iCols );
+    std::fill(BEGIN(storage), END(storage), tData(0));
+    tData* pij = &storage[0];
+    for(const auto& element : l) {
+        *pij++ = element;
     }
     return *this;
 }
 
 template < class tData, size_t tRows, size_t tCols >
-void Matrix< tData, tRows, tCols >::memset(const tData* tArray) {
+void Matrix< tData, tRows, tCols >::load(const tData* tArray) {
+    // Choosing idiomatic C++ over potential speed
     // std::memcpy(storage, tArray, sizeof(storage));
     std::copy(tArray, tArray+tRows*tCols, BEGIN(storage));
 }
 
+template < class tData,  size_t tRows,  size_t tCols>
+template < size_t tRows0, size_t tCols0 >
+void Matrix< tData, tRows, tCols >::submatrix(size_t insertRow, size_t insertCol, const Matrix< tData, tRows0, tCols0>& rval) {
+    assert((insertRow        <= iRows) && (insertCol        <= iCols));
+    assert((insertRow+tRows0 <= iRows) && (insertCol+tCols0 <= iCols));
+
+    for(size_t i = 0; i < tRows0; i++)
+        for(size_t j = 0; j < tCols0; j++)
+            ij[insertRow+i][insertCol+j] = rval[i][j];
+}
+
+template < class tData,  size_t tRows,  size_t tCols>
+template < size_t tRows0, size_t tCols0 >
+Matrix< tData, tRows0, tCols0> Matrix< tData, tRows, tCols >::submatrix(size_t insertRow, size_t insertCol) {
+    assert((insertRow        <= iRows) && (insertCol        <= iCols));
+    assert((insertRow+tRows0 <= iRows) && (insertCol+tCols0 <= iCols));
+
+    Matrix< tData, tRows0, tCols0> lval;
+
+    for(size_t i = 0; i < tRows0; i++)
+        for(size_t j = 0; j < tCols0; j++)
+            lval[i][j] = ij[insertRow+i][insertCol+j];
+    return lval;
+}
+
+template < class tData, size_t tRows, size_t tCols >
+void Matrix< tData, tRows, tCols >::memcpy(tData* tArray) {
+    // These situation can't occur
+    // size_t mysize = tRows*tCols*sizeof(tData);
+    // if(sizeof(storage) != mysize) abort();
+
+    // Choosing idiomatic C++ over potential speed
+    // std::memcpy(tArray, storage, sizeof(storage));
+    std::copy(BEGIN(storage), END(storage), tArray);
+}
+
 template < class tData, size_t tRows, size_t tCols >
 tData & Matrix< tData, tRows, tCols >::operator () (size_t iRowIndex, size_t iColIndex) const {
-    iRowIndex--;
-    iColIndex--;
-    assert(iRowIndex<iRows);
-    assert(iColIndex<iCols);
-    return ij[iRowIndex][iColIndex];
+    assert(1<=iRowIndex && iRowIndex<=iRows);
+    assert(1<=iColIndex && iColIndex<=iCols);
+    return ij[iRowIndex-1][iColIndex-1];
 }
 
 template < class tData, size_t tRows, size_t tCols >
 tData & Matrix< tData, tRows, tCols >::operator () (size_t iIndex) const {
-    iIndex--;
     assert(iRows==1 || iCols==1);
     if(iCols == 1) {
-        assert(iIndex<iRows);
-        return ij[iIndex][0];
+        assert(1<=iIndex && iIndex<=iRows);
+        return ij[iIndex-1][0];
     } else { // (iRows == 1)
-        assert(iIndex<iCols);
-        return ij[0][iIndex];
+        assert(1<=iIndex && iIndex<=iCols);
+        return ij[0][iIndex-1];
     }
 }
 
@@ -498,14 +665,14 @@ std::ostream& operator << (std::ostream& s,const Matrix< tData, tRows, tCols >& 
     // Sets new precision, returns old. Should figure out how to modify
     // without code change here.  Switch to exponential as well.
     std::streamsize old_precision = s.precision(8);
-
-    //s.setf( std::ios::fixed, std:: ios::floatfield ); // floatfield set to fixed
+    s.setf( std::ios::fixed, std::ios::floatfield ); // floatfield set to fixed
+    //s.setf( std::ios::scientific, std::ios::floatfield ); // floatfield set to fixed
 
     //s << "Address: 0x" << (&A) << std::endl;
     for (size_t i=0; i<A.iRows; i++) {
         for (size_t j=0; j<A.iCols; j++) {
             //s.width(25);
-            s << (A[i][j]) << '\t';
+            s << (A[i][j]) << "   ";
         }
         s << std::endl;
     }
@@ -538,7 +705,7 @@ Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator + () {
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator - () { 
+Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator - () {
     Matrix< tData, tRows, tCols > Result;
     tData * pLeft = ij[0];
     tData * pResult = Result.ij[0];
@@ -548,7 +715,7 @@ Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator - () {
 }
 
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator + (const Matrix< tData, tRows, tCols > & R) {
+Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator + (const Matrix< tData, tRows, tCols > & R) const {
     Matrix< tData, tRows, tCols > Result;
     tData * pLeft   = ij[0];
     tData * pRight  = R.ij[0];
@@ -602,6 +769,20 @@ Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator / (const t
     return Result;
 }
 
+template < class tData, size_t tRows >
+Matrix< tData, tRows, tRows > operator ^(Matrix< tData, tRows, tRows > L, char n) {
+    assert(0<=n && n <= 12); // Limiting to 10 because you shouldn't need more.
+    Matrix< tData, tRows, tRows >  Result;
+    if(n==0) {
+        Result.eye();
+    } else {
+        Result = L;              // iteration 0
+        for(int i = 1; i<n; i++) // iterations 1 - (n-1)
+            Result = Result*L;
+    }
+    return Result;
+}
+
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator *= (const Matrix< tData, tRows, tCols > & R) {
     Matrix< tData, tRows, tCols > Result;
@@ -628,7 +809,7 @@ Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::operator /= (const 
 
 template < class tData0, size_t tCols0, size_t tRowsT, size_t tRowsB>
 Matrix< tData0, tRowsT+tRowsB, tCols0 > operator & (const Matrix< tData0, tRowsT, tCols0 >& Top,
-        const Matrix< tData0, tRowsB, tCols0 >& Bottom) { 
+        const Matrix< tData0, tRowsB, tCols0 >& Bottom) {
     Matrix< tData0, tRowsT+tRowsB, tCols0 > Result;
 
     size_t i,ii,j;
@@ -646,7 +827,7 @@ Matrix< tData0, tRowsT+tRowsB, tCols0 > operator & (const Matrix< tData0, tRowsT
 
 template < class tData0, size_t tRows0, size_t tColsL, size_t tColsR >
 Matrix< tData0, tRows0, tColsL+tColsR > operator | (const Matrix< tData0, tRows0, tColsL >& Left,
-        const Matrix< tData0, tRows0, tColsR >& Right) { 
+        const Matrix< tData0, tRows0, tColsR >& Right) {
     Matrix< tData0, tRows0, tColsL+tColsR > Result;
     size_t i,j,jj;
     for(i=0; i<Left.iRows; i++)
@@ -657,6 +838,16 @@ Matrix< tData0, tRows0, tColsL+tColsR > operator | (const Matrix< tData0, tRows0
             Result[i][j] = Right[i][jj];
         }
     }
+    return Result;
+}
+
+template < class tData, size_t tRows, size_t tCols >
+Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::op( tData(*fcn)(tData) ) {
+    Matrix< tData, tRows, tCols > Result;
+    tData * pRight  = ij[0];
+    tData * pResult = Result.ij[0];
+    for (size_t iIndex = 0; iIndex < iRows * iCols; iIndex++)
+        (*pResult++) = (*fcn)( *pRight++ );
     return Result;
 }
 
@@ -697,14 +888,24 @@ Matrix< tData, tRows, tCols > Matrix< tData, tRows, tCols >::randn(void) {
     return *this;
 }
 
+
+// Only good for non complex data types.  Need to implement complex conjugate at some point.
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tCols, tRows > trans( const Matrix< tData, tRows, tCols >& R ) {
+Matrix< tData, tCols, tRows > Matrix< tData, tRows, tCols >::t(void) const {
+    static_assert(std::is_same<tData, double>::value || std::is_same<tData, float>::value,
+                  "some meaningful error message");
     Matrix< tData, tCols, tRows > Result;
 
     for (size_t iIndex = 0; iIndex < tCols; iIndex++)
         for (size_t jIndex = 0; jIndex < tRows; jIndex++)
-            Result[iIndex][jIndex] = R[jIndex][iIndex];
+            Result[iIndex][jIndex] = ij[jIndex][iIndex];
 
+    return Result;
+}
+
+template < class tData, size_t tRows, size_t tCols >
+Matrix< tData, tCols, tRows > trans( const Matrix< tData, tRows, tCols >& R ) {
+    Matrix< tData, tCols, tRows > Result{R.t()};
     return Result;
 }
 
@@ -772,7 +973,13 @@ Matrix< tData, 3, 3 > skew( const Matrix< tData, 3, 1 >& R ) {
 
 template < class tData >
 Matrix< tData, 3, 1 > cross( const Matrix< tData, 3, 1 >& L, const Matrix< tData, 3, 1 >& R ) {
-    return skew(L)*R;
+    //return skew(L)*R;
+    Matrix< tData, 3, 1> result = {
+        L[1][0]*R[2][0] - L[2][0]*R[1][0],
+        L[2][0]*R[0][0] - L[0][0]*R[2][0],
+        L[0][0]*R[1][0] - L[1][0]*R[0][0],
+    };
+    return(result);
 }
 
 template < class tData, size_t tRows >
@@ -804,6 +1011,26 @@ Matrix< tData, tRows, 1 > Matrix< tData, tRows, tCols >::u( void ) const {
     assert(den != 0.0);
     Matrix< tData, tRows, 1 > Result = *this;
     return Result*(1.0/den);
+}
+
+template < class tData, size_t tRows >
+Matrix< tData, tRows, tRows > expm( const Matrix< tData, tRows, tRows >& R ) {
+    Matrix< tData, tRows, tRows > Result;
+    Result.eye();
+
+    Result = Result + R +
+             (1.0/2.0)*(R^2) +
+             (1.0/6.0)*(R^3) +
+             (1.0/24.0)*(R^4) +
+             (1.0/120.0)*(R^5) +
+             (1.0/720.0)*(R^6) +
+             (1.0/5040.0)*(R^7) +
+             (1.0/40320.0)*(R^8) +
+             (1.0/362880.0)*(R^9) +
+             (1.0/3628800.0)*(R^10) +
+             (1.0/39916800.0)*(R^11) +
+             (1.0/479001600.0)*(R^12);
+    return Result;
 }
 
 extern "C" void sgesv_( const int &n, const int &nrhs, float *A,
@@ -1040,6 +1267,22 @@ std::complex<double> det( const Matrix< std::complex<double>, tRows, tRows >& R 
     }
     return result;
 }
+
+typedef  Matrix<double,2,2> MATRIX2x2;
+typedef  Matrix<double,3,3> MATRIX3x3;
+typedef  Matrix<double,4,4> MATRIX4x4;
+typedef  Matrix<double,5,5> MATRIX5x5;
+typedef  Matrix<double,6,6> MATRIX6x6;
+typedef  Matrix<double,7,7> MATRIX7x7;
+typedef  Matrix<double,8,8> MATRIX8x8;
+
+typedef  Matrix<double,2,1> VECTOR2x1;
+typedef  Matrix<double,3,1> VECTOR3x1;
+typedef  Matrix<double,4,1> QUAT4x1;
+typedef  Matrix<double,5,1> VECTOR5x1;
+typedef  Matrix<double,6,1> VECTOR6x1;
+typedef  Matrix<double,7,1> VECTOR7x1;
+typedef  Matrix<double,8,1> VECTOR8x1;
 
 } // from namespace
 
