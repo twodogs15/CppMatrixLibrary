@@ -29,7 +29,7 @@ void f(const py::array &b) {
     //return v;
 }
 
-PYBIND11_MODULE(code, m) {
+PYBIND11_MODULE(test_EMatrix, m) {
     m.doc() = "pybind11 example plugin"; // optional module docstring
 
     m.def("f", &f< double >);

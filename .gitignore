@@ -1,5 +1,6 @@
 .vscode
 build
+__pycache__
 
 # Prerequisites
 *.d
@@ -10,6 +11,7 @@ build
 # Compiled Static libraries
 *.a
 *.lib
+*.so
 
 # Executables
 *.exe

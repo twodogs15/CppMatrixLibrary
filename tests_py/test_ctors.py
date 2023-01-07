@@ -4,10 +4,6 @@ import test_ctors
 import numpy as np
 import unittest
 
-import sys
-sys.path.insert(0, '../build/tests_py')
-
-
 class testCtors(unittest.TestCase):
 
     def test_ctor_m1(self):
