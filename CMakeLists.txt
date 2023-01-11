@@ -21,8 +21,16 @@ if(LAPACK_FOUND AND BLAS_FOUND)
     set(lapackblas_libraries ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 endif()
 
-add_compile_options(-Wall -Wextra -pedantic -Wno-unused-parameter 
-                    -Wno-unused-variable -Wno-unused-function -fmax-errors=2)
+if (MSVC)
+    # warning level 4 and all warnings as errors
+    add_compile_options(/W4 /WX)
+else()
+    # lots of warnings and all warnings as errors
+    add_compile_options(-Wall -Wextra -pedantic -Werror
+                        -Wno-unused-variable -Wno-unused-function -fmax-errors=2)    
+endif()
+
+add_compile_definitions(DYNAMIC_STORAGE)
 
 add_subdirectory(tests_cpp)
 add_subdirectory(tests_py)

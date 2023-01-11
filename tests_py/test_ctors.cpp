@@ -9,6 +9,15 @@ namespace py = pybind11;
 typedef ematrix::Matrix<double, 2, 3> myMatrix;
 
 template< typename T >
+py::buffer_info checkBufferType(const py::array_t< T, py::array::c_style > & a) {
+    py::buffer_info info = a.request();
+    if (info.format != py::format_descriptor< T >::format() || info.ndim != 2) {
+        throw std::runtime_error("Incompatible buffer format!");
+    }
+    return info;
+}
+
+template< typename T >
 myMatrix f(const py::array &b) {
     py::buffer_info info = b.request();
     if (info.format != py::format_descriptor< T >::format() || info.ndim != 2) {
@@ -31,23 +40,43 @@ myMatrix test_ctor_m1(void) {
 
 template < typename T >
 myMatrix test_ctor_m2(const py::array_t< T, py::array::c_style > &a) {
-    py::buffer_info info = a.request();
-    if (info.format != py::format_descriptor< T >::format() || info.ndim != 2) {
-        throw std::runtime_error("Incompatible buffer format!");
-    }
-    myMatrix b;
+    auto info = checkBufferType(a);
+    const myMatrix b;
     // Filling data manually to avoid using other functions.
     memcpy(b.pIJ(), info.ptr, sizeof(double)*(b.rows()*b.cols()));
-    myMatrix c{b};
+    myMatrix c(b);
+    return c;
+}
+
+template < typename T >
+myMatrix test_ctor_m3(const py::array_t< T, py::array::c_style > &a) {
+    auto info = checkBufferType(a);
+    const myMatrix b;
+    myMatrix c;
+    // Filling data manually to avoid using other functions.
+    memcpy(b.pIJ(), info.ptr, sizeof(double)*(b.rows()*b.cols()));
+    c = b;
+    return c;
+}
+
+template < typename T >
+myMatrix test_ctor_m5(const py::array_t< T, py::array::c_style > &a) {
+    auto info = checkBufferType(a);
+    myMatrix b{};
+    // Filling data manually to avoid using other functions.
+    memcpy(b.pIJ(), info.ptr, sizeof(double)*(b.rows()*b.cols()));
+    myMatrix c(std::move_if_noexcept(b));
     return c;
 }
 
 PYBIND11_MODULE(test_ctors, m) {
-    m.doc() = "pybind11 example plugin"; // optional module docstring
+    m.doc() = "pybind11 test_ctors";
 
     m.def("f", &f< double >);
     m.def("test_ctor_m1", &test_ctor_m1);
     m.def("test_ctor_m2", &test_ctor_m2< double >);
+    m.def("test_ctor_m3", &test_ctor_m3< double >);
+    m.def("test_ctor_m5", &test_ctor_m5< double >);
 
     py::class_< myMatrix >(m, "myMatrix", py::buffer_protocol())
         //.def(py::init<py::ssize_t, py::ssize_t>())

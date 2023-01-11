@@ -21,7 +21,22 @@ class testCtors(unittest.TestCase):
 
         self.assertEqual(a.shape, c.shape)
         self.assertIsNone(np.testing.assert_array_equal(a, c))
+ 
+    def test_ctor_m3(self):
+        a = np.array([[1, 2, 3], [4, 5, 6]])
+        b = test_ctors.test_ctor_m3(a)
+        c = np.array(b)
 
+        self.assertEqual(a.shape, c.shape)
+        self.assertIsNone(np.testing.assert_array_equal(a, c)) 
+  
+    def test_ctor_m5(self):
+        a = np.array([[1, 2, 3], [4, 5, 6]])
+        b = test_ctors.test_ctor_m5(a)
+        c = np.array(b)
+
+        self.assertEqual(a.shape, c.shape)
+        self.assertIsNone(np.testing.assert_array_equal(a, c))  
 
 if __name__ == '__main__':
     unittest.main()
