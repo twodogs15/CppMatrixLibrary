@@ -3,18 +3,18 @@
 # of the license file can be found in LICENSE.
  
 TGT1      = readme_example.exe                    
-TGT2      = test_EMatrix.exe
+TGT2      = test_ematrix.exe
 
 SRC1      = readme_example.cpp
-SRC2      = test_EMatrix.cpp
+SRC2      = ./tests_cpp/test_ematrix.cpp
 
 OBJ1     := $(SRC1:.cpp=.o)
 OBJ2     := $(SRC2:.cpp=.o)
 
-CXX      = clang++ #works too
-CC       = gcc# clang
+CXX      = clang++ # clang++
+CC       = clang # clang
 INCLUDES = -I. 
-CXXFLAGS = $(INCLUDES) -std=c++17 -pedantic -Wall -Wextra -O2 -Wfatal-errors 
+CXXFLAGS = $(INCLUDES) -std=c++17 -pedantic -Wall -Wextra -O2 -Wfatal-errors -DDYNAMIC_STORAGE
 
 LDFLAGS  = -llapack -lblas 
 

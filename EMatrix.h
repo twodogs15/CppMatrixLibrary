@@ -33,14 +33,16 @@
 
 namespace ematrix {
 
-#define DYNAMIC_STORAGE
 
-#ifndef DYNAMIC_STORAGE
-#define BEGIN(x) std::begin(x)
-#define END(x) std::end(x)
-#else
+//#define DYNAMIC_STORAGE
+//#define USE_LAPACK
+
+#ifdef DYNAMIC_STORAGE
 #define BEGIN(x) (x)
 #define END(x) (x+tRows*tCols)
+#else
+#define BEGIN(x) std::begin(x)
+#define END(x) std::end(x)
 #endif
 
 template < typename tData, size_t tRows, size_t tCols >
@@ -426,6 +428,7 @@ class Matrix {
     /** Matrix inverse, must link with Lapack
      *  Usage: A_inv = inv(A);
      */
+#ifdef USE_LAPACK
     template < size_t tRows0 >
     friend Matrix< float, tRows0, tRows0 > inv(const Matrix< float, tRows0, tRows0 >& R);
 
@@ -437,15 +440,6 @@ class Matrix {
 
     template < size_t tRows0 >
     friend Matrix< std::complex<double>, tRows0, tRows0 > inv(const Matrix< std::complex<double>, tRows0, tRows0 >& R);
-
-    /** Matrix inverse, 2x2 and 3x3 double specializations.
-     *  Usage A_inv = inv(A)
-     */
-    friend Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >
-    inv(const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R);
-
-    friend Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >
-    inv(const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R);
 
     /** Matrix determinant, must link with Lapack.
      *  Usage: A_det = det(A);
@@ -461,6 +455,16 @@ class Matrix {
 
     template < size_t tRows0 >
     friend std::complex<double> det(const Matrix< std::complex<double>, tRows0, tRows0 >& R);
+#endif
+
+    /** Matrix inverse, 2x2 and 3x3 double specializations.
+     *  Usage A_inv = inv(A)
+     */
+    friend Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >
+    inv(const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R);
+
+    friend Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >
+    inv(const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R);
 
     /** Matrix determinant, 2x2 and 3x3 double specializations.
      *  Usage A_det = det(A)
@@ -473,19 +477,17 @@ class Matrix {
 
 #ifndef DYNAMIC_STORAGE
 template < class tData, size_t tRows, size_t tCols >
-void Matrix< tData, tRows, tCols >::matalloc(size_t iRowIndex, size_t iColIndex) {
+void Matrix< tData, tRows, tCols >::matalloc(void) {
     ij[0] = &storage[0];
-    for (size_t iIndex = 1; iIndex < iRowIndex; iIndex++)
-        ij[iIndex] = ij[iIndex - 1] + iColIndex;
+    for (size_t iIndex = 1; iIndex < tRows; iIndex++)
+        ij[iIndex] = ij[iIndex - 1] + tCols;
 }
 
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::~Matrix() {
     HERE();
 }
-
 #else
-
 template < class tData, size_t tRows, size_t tCols >
 void Matrix< tData, tRows, tCols >::matalloc(void) {
     assert(0<tRows && 0<tCols);
@@ -1041,6 +1043,7 @@ Matrix< tData, tRows, tRows > expm( const Matrix< tData, tRows, tRows >& R ) {
     return Result;
 }
 
+#ifdef USE_LAPACK
 extern "C" void sgesv_( const int &n, const int &nrhs, float *A,
                         const int &lda, int* ipiv, float *B, const int &ldb, int *info);
 extern "C" void cgesv_( const int &n, const int &nrhs, std::complex<float> *A,
@@ -1105,44 +1108,6 @@ Matrix< double, tRows, tRows > inv( const Matrix< double, tRows, tRows >& R ) {
     }
 
     return Result;
-}
-
-// Specialized 2x2 and 3x3 double variants generated from sympy
-// Would you like to know more? Click here: https://docs.sympy.org/latest/index.html
-//   >>> from sympy import symbols, Matrix, pprint
-//   >>> a,b,c,d,e,f,g,h,i = symbols('a b c d e f g h i')
-//   >>> A = Matrix([[a,b,c],[d,e,f],[g,h,i]])
-//   >>> pprint(A.adjugate()); pprint(A.det())
-Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >
-inv( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R ) {
-    double the_det = det(R);
-
-    if(std::abs(the_det) < FLT_EPSILON) {
-        std::cerr << "matrix near singular" << std::endl;
-        abort();
-    }
-
-    Matrix< double, 2, 2 > M = {R[1][1], -R[0][1], -R[1][0], R[0][0]};
-    return((1.0/the_det)*M);
-}
-
-Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >
-inv( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R ) {
-    double the_det = det(R);
-
-    if(std::abs(the_det) < FLT_EPSILON) {
-        std::cerr << "matrix near singular" << std::endl;
-        abort();
-    }
-
-    Matrix< double, 3, 3 > M = {R[1][1]*R[2][2] - R[1][2]*R[2][1],
-                                -R[0][1]*R[2][2] + R[0][2]*R[2][1], R[0][1]*R[1][2] - R[0][2]*R[1][1],
-                                -R[1][0]*R[2][2] + R[1][2]*R[2][0], R[0][0]*R[2][2] - R[0][2]*R[2][0],
-                                -R[0][0]*R[1][2] + R[0][2]*R[1][0], R[1][0]*R[2][1] - R[1][1]*R[2][0],
-                                -R[0][0]*R[2][1] + R[0][1]*R[2][0], R[0][0]*R[1][1] - R[0][1]*R[1][0]
-                               };
-
-    return((1.0/the_det)*M);
 }
 
 template < size_t tRows >
@@ -1239,21 +1204,6 @@ double det( const Matrix< double, tRows, tRows >& R ) {
     return result;
 }
 
-// Specialized 2x2 and 3x3 double variants generated from sympy
-// Would you like to know more? Click here: https://docs.sympy.org/latest/index.html
-//   >>> from sympy import symbols, Matrix, pprint
-//   >>> a,b,c,d,e,f,g,h,i = symbols('a b c d e f g h i')
-//   >>> A = Matrix([[a,b,c],[d,e,f],[g,h,i]])
-//   >>> pprint(A.det())
-double det( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R ) {
-    return( R[0][0]*R[1][1] - R[0][1]*R[1][0] );
-}
-
-double det( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R ) {
-    return( R[0][0]*R[1][1]*R[2][2] - R[0][0]*R[1][2]*R[2][1] - R[0][1]*R[1][0]*R[2][2] +
-            R[0][1]*R[1][2]*R[2][0] + R[0][2]*R[1][0]*R[2][1] - R[0][2]*R[1][1]*R[2][0] );
-}
-
 template < size_t tRows >
 std::complex<double> det( const Matrix< std::complex<double>, tRows, tRows >& R ) {
     int n = tRows;
@@ -1274,6 +1224,60 @@ std::complex<double> det( const Matrix< std::complex<double>, tRows, tRows >& R 
         abort();
     }
     return result;
+}
+#endif
+
+// Specialized 2x2 and 3x3 double variants generated from sympy
+// Would you like to know more? Click here: https://docs.sympy.org/latest/index.html
+//   >>> from sympy import symbols, Matrix, pprint
+//   >>> a,b,c,d,e,f,g,h,i = symbols('a b c d e f g h i')
+//   >>> A = Matrix([[a,b,c],[d,e,f],[g,h,i]])
+//   >>> pprint(A.adjugate()); pprint(A.det())
+Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >
+inv( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R ) {
+    double the_det = det(R);
+
+    if(std::abs(the_det) < FLT_EPSILON) {
+        std::cerr << "matrix near singular" << std::endl;
+        abort();
+    }
+
+    Matrix< double, 2, 2 > M = {R[1][1], -R[0][1], -R[1][0], R[0][0]};
+    return((1.0/the_det)*M);
+}
+
+Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >
+inv( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R ) {
+    double the_det = det(R);
+
+    if(std::abs(the_det) < FLT_EPSILON) {
+        std::cerr << "matrix near singular" << std::endl;
+        abort();
+    }
+
+    Matrix< double, 3, 3 > M = {R[1][1]*R[2][2] - R[1][2]*R[2][1],
+                                -R[0][1]*R[2][2] + R[0][2]*R[2][1], R[0][1]*R[1][2] - R[0][2]*R[1][1],
+                                -R[1][0]*R[2][2] + R[1][2]*R[2][0], R[0][0]*R[2][2] - R[0][2]*R[2][0],
+                                -R[0][0]*R[1][2] + R[0][2]*R[1][0], R[1][0]*R[2][1] - R[1][1]*R[2][0],
+                                -R[0][0]*R[2][1] + R[0][1]*R[2][0], R[0][0]*R[1][1] - R[0][1]*R[1][0]
+                               };
+
+    return((1.0/the_det)*M);
+}
+
+// Specialized 2x2 and 3x3 double variants generated from sympy
+// Would you like to know more? Click here: https://docs.sympy.org/latest/index.html
+//   >>> from sympy import symbols, Matrix, pprint
+//   >>> a,b,c,d,e,f,g,h,i = symbols('a b c d e f g h i')
+//   >>> A = Matrix([[a,b,c],[d,e,f],[g,h,i]])
+//   >>> pprint(A.det())
+double det( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R ) {
+    return( R[0][0]*R[1][1] - R[0][1]*R[1][0] );
+}
+
+double det( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R ) {
+    return( R[0][0]*R[1][1]*R[2][2] - R[0][0]*R[1][2]*R[2][1] - R[0][1]*R[1][0]*R[2][2] +
+            R[0][1]*R[1][2]*R[2][0] + R[0][2]*R[1][0]*R[2][1] - R[0][2]*R[1][1]*R[2][0] );
 }
 
 typedef  Matrix<double,2,2> MATRIX2x2;

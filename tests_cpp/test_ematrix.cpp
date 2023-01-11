@@ -72,7 +72,7 @@ int main(void) {
         Matrix<double,2,2> C;
         B=A;
         cerr << B << endl;
-        B=B;
+        //B=B;
         cerr << B << endl;
         // B=C; // Compiler error
     }
@@ -171,7 +171,7 @@ int main(void) {
         ZA[2][1] = complex<double>( 7.2, 2.9);
         ZA[2][2] = complex<double>(-8.8, 3.2);
 
-        Matrix< complex<double>,3,3 > ZAinv = inv(ZA);
+        //Matrix< complex<double>,3,3 > ZAinv = inv(ZA);
         //octave(cout,ZA,"za") << endl;
         //cerr << trans(ZA) << endl;
         //cerr << ZAinv << endl;
@@ -388,10 +388,10 @@ int main(void) {
         ZA[2][1] = complex<double>( 7.2, 2.9);
         ZA[2][2] = complex<double>(-8.8, 3.2);
 
-        Matrix< complex<double>,3,3 > ZAinv = inv(ZA);
+        //Matrix< complex<double>,3,3 > ZAinv = inv(ZA);
 
-        cerr << det(ZA) << endl;
-        cerr << det(trans(ZA)) << endl;
+        //cerr << det(ZA) << endl;
+        //cerr << det(trans(ZA)) << endl;
     }
 
     {
@@ -411,10 +411,10 @@ int main(void) {
         ZC[2][1] = complex<float>( 7.2f, 2.9f);
         ZC[2][2] = complex<float>(-8.8f, 3.2f);
 
-        Matrix< complex<float>,3,3 > ZCinv = inv(ZC);
+        //Matrix< complex<float>,3,3 > ZCinv = inv(ZC);
 
-        cerr << det(ZC) << endl;
-        cerr << det(trans(ZC)) << endl;
+        //cerr << det(ZC) << endl;
+        //cerr << det(trans(ZC)) << endl;
     }
 
     {
@@ -423,16 +423,16 @@ int main(void) {
         cerr << inv(A) << endl;
         cerr << inv(B) << endl;
         cerr << det(A) << endl;
-        Matrix< double, 4, 4 > C; C.randn();
-        cerr << det(C) << endl;
+        //Matrix< double, 4, 4 > C; C.randn();
+        //cerr << det(C) << endl;
     }
 
     {
         Matrix< float, 3, 3 > A = {1, 1, 1, 2, 3, 4, 1, 3, 6};
         Matrix< float, 3, 3 > B = {6, -3, 1, -8, 5, -2, 3, -2, 1};
-        cerr << inv(A) << endl;
-        cerr << inv(B) << endl;
-        cerr << det(A) << endl;
+        //cerr << inv(A) << endl;
+        //cerr << inv(B) << endl;
+        //cerr << det(A) << endl;
 
         //float a[2][3] = {{1.40,2.40,3.40},{4.40,5.40,6.40}};
         //Matrix<float,2,3> C(&a[0][0]);
