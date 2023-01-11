@@ -25,6 +25,8 @@
 #include <utility>
 #include <algorithm>
 
+#define TESTING
+
 #ifdef TESTING
 #define HERE(x) std::cerr << (x) << ':' << __FILE__ << ':' << __LINE__ << std::endl;
 #else
@@ -88,8 +90,8 @@ class Matrix {
      *  Note: Since C++ 17 these statements explicitly tell the compiler to
      *  generate the implicit versions.  These are not testable.
      */
-    Matrix (Matrix< tData, tRows, tCols > && R) = default;
-    Matrix< tData, tRows, tCols > &operator = (Matrix< tData, tRows, tCols > && R) = default;
+    //Matrix (Matrix< tData, tRows, tCols > && R) noexcept = default;
+    //Matrix< tData, tRows, tCols > &operator = (Matrix< tData, tRows, tCols > && R) noexcept = default;
 #else
     /** [m5] Move constructor (not to be confused with the copy constructor).
      *  Usage: Matrix<float,2,3> A;
@@ -97,7 +99,7 @@ class Matrix {
      */
     Matrix (Matrix< tData, tRows, tCols > && R) noexcept;
 
-    /** [mb] Copy constructor (not to be confused with the assignment operator).
+    /** [m5] Copy constructor (not to be confused with the assignment operator).
      *  Usage: Matrix<float,2,3> A, B;
      *         Matrix<float,2,3> B=A;
      */
@@ -485,7 +487,7 @@ void Matrix< tData, tRows, tCols >::matalloc(void) {
 
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::~Matrix() {
-    HERE();
+    //HERE("~Matrix()");
 }
 #else
 template < class tData, size_t tRows, size_t tCols >
@@ -502,6 +504,7 @@ void Matrix< tData, tRows, tCols >::matalloc(void) {
     for (size_t i = 1; i < tRows; i++) {
         ij[i] = ij[i - 1] + tCols;
     }
+    //HERE("void Matrix< tData, tRows, tCols >::matalloc(void)");
 }
 
 template < class tData, size_t tRows, size_t tCols >
@@ -511,7 +514,7 @@ Matrix< tData, tRows, tCols >::~Matrix() {
     storage = nullptr;
     if(ij) delete[] ij;
     ij = nullptr;
-    HERE("~Matrix()");
+    //HERE("~Matrix()");
 }
 
 template < class tData, size_t tRows, size_t tCols >
@@ -519,7 +522,17 @@ Matrix< tData, tRows, tCols >::Matrix(Matrix && R) noexcept :
     ij{ std::move(R.ij) }, storage{ std::move(R.storage) } {
     R.ij = nullptr;
     R.storage = nullptr;
+    HERE("Matrix< tData, tRows, tCols >::Matrix(Matrix && R) noexcept");
 }
+
+/*
+template < class tData, size_t tRows, size_t tCols >
+Matrix< tData, tRows, tCols >::Matrix(Matrix && R) noexcept :
+    ij{ nullptr }, storage{ nullptr } {
+    *this = std::move(R);
+    HERE("Matrix< tData, tRows, tCols >::Matrix(Matrix && R) noexcept");
+}
+*/
 
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >& Matrix< tData, tRows, tCols >::operator =
@@ -550,7 +563,8 @@ Matrix< tData, tRows, tCols >::Matrix() {
     // more idiomatic C++ until such time as speed is important.  Also, memset
     // is not correct when using non built-in types, e.g. complex<double>.
     // 1. std::memset (storage, 0x0, sizeof(storage));
-    // 2. std::memset (reinterpret_cast<char*>(&storage[0]), '\0', sizeof(storage));
+    std::memset (reinterpret_cast<char*>(&storage[0]), '\0', sizeof(storage));
+    HERE("Matrix< tData, tRows, tCols >::Matrix()");
     std::fill(BEGIN(storage), END(storage), tData(0));
 }
 
@@ -561,6 +575,7 @@ Matrix< tData, tRows, tCols >::Matrix(const Matrix & R) {
     // Choosing idiomatic C++ over potential speed
     // std::memcpy(storage, R.storage, sizeof(storage));
     std::copy(BEGIN(R.storage), END(R.storage), BEGIN(storage));
+    HERE("Matrix< tData, tRows, tCols >::Matrix(const Matrix & R)");
 }
 
 template < class tData, size_t tRows, size_t tCols >
