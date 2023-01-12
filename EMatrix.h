@@ -25,7 +25,10 @@
 #include <utility>
 #include <algorithm>
 
-#define TESTING
+// Also set in the top level cmake file
+//#define TESTING
+//#define DYNAMIC_STORAGE
+//#define USE_LAPACK
 
 #ifdef TESTING
 #define HERE(x) std::cerr << (x) << ':' << __FILE__ << ':' << __LINE__ << std::endl;
@@ -35,9 +38,6 @@
 
 namespace ematrix {
 
-
-//#define DYNAMIC_STORAGE
-//#define USE_LAPACK
 
 #ifdef DYNAMIC_STORAGE
 #define BEGIN(x) (x)
@@ -99,7 +99,7 @@ class Matrix {
      */
     Matrix (Matrix< tData, tRows, tCols > && R) noexcept;
 
-    /** [m5] Copy constructor (not to be confused with the assignment operator).
+    /** [m6] Copy constructor (not to be confused with the assignment operator).
      *  Usage: Matrix<float,2,3> A, B;
      *         Matrix<float,2,3> B=A;
      */
@@ -563,7 +563,7 @@ Matrix< tData, tRows, tCols >::Matrix() {
     // more idiomatic C++ until such time as speed is important.  Also, memset
     // is not correct when using non built-in types, e.g. complex<double>.
     // 1. std::memset (storage, 0x0, sizeof(storage));
-    std::memset (reinterpret_cast<char*>(&storage[0]), '\0', sizeof(storage));
+    // 2. std::memset (reinterpret_cast<char*>(&storage[0]), '\0', sizeof(storage));
     HERE("Matrix< tData, tRows, tCols >::Matrix()");
     std::fill(BEGIN(storage), END(storage), tData(0));
 }

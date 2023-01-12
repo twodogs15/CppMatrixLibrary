@@ -11,12 +11,12 @@ SRC2      = ./tests_cpp/test_ematrix.cpp
 OBJ1     := $(SRC1:.cpp=.o)
 OBJ2     := $(SRC2:.cpp=.o)
 
-CXX      = clang++ # clang++
-CC       = clang # clang
+CXX      = g++ # clang++
+CC       = gcc # clang
 INCLUDES = -I. 
-CXXFLAGS = $(INCLUDES) -std=c++17 -pedantic -Wall -Wextra -O2 -Wfatal-errors -DDYNAMIC_STORAGE
+CXXFLAGS = $(INCLUDES) -std=c++17 -pedantic -Wall -Wextra -O2 -Wfatal-errors# -DDYNAMIC_STORAGE
 
-LDFLAGS  = -llapack -lblas 
+LDFLAGS  =# -llapack -lblas 
 
 all : $(TGT1) $(TGT2)
 

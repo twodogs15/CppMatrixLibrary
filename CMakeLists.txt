@@ -31,6 +31,7 @@ else()
 endif()
 
 add_compile_definitions(DYNAMIC_STORAGE)
+#add_compile_definitions(TESTING)
 
 add_subdirectory(tests_cpp)
 add_subdirectory(tests_py)
