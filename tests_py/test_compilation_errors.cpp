@@ -68,6 +68,14 @@ int main(void) {
         Matrix<double,2,3> A;
         Matrix<double,3,2> B=A;  
 #endif
+
+// [m4] operator=(const Matrix< tData, tRows, tCols >& R);
+// Testing a variety of compilation errors given invalid matrix sizes.
+#ifdef FAIL_M4_A
+        Matrix<double,2,3> A;
+        Matrix<double,3,2> B;
+        B = A;
+#endif
     
     return(0);
 }

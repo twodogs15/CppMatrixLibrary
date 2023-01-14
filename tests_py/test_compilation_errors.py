@@ -12,6 +12,8 @@ import inspect
 
 class TestCompilation(unittest.TestCase):
 
+    dynamicStorage = 'DYNAMIC_STORAGE=0'
+
     def iterateFailCase(self, failCases, devNull=True):
         caller = inspect.stack()[1][3]
         base = re.compile(r'test_fail_(M\d*)').match(caller)
@@ -22,10 +24,10 @@ class TestCompilation(unittest.TestCase):
                 tag = f'FAIL_{caseBase}_{case}'
                 print(f'Test Case: {tag}')
                 if devNull == True:
-                    child = sp.run(['g++', '-std=c++17', '-fsyntax-only', '-DTESTING',
+                    child = sp.run(['g++', '-std=c++17', '-fsyntax-only', '-DTESTING', self.dynamicStorage,
                                     f'-D{tag}', '-I..', 'test_compilation_errors.cpp'], stdout=sp.DEVNULL, stderr=sp.STDOUT)
                 else:
-                    child = sp.run(['g++', '-std=c++17', '-fsyntax-only', '-DTESTING',
+                    child = sp.run(['g++', '-std=c++17', '-fsyntax-only', '-DTESTING', self.dynamicStorage,
                                     f'-D{tag}', '-I..', 'test_compilation_errors.cpp'], stderr=sp.STDOUT)
                 rc = child.returncode
                 self.assertNotEqual(rc, 0)
@@ -50,6 +52,10 @@ class TestCompilation(unittest.TestCase):
         failCases = ['A', 'B', 'C']
         self.iterateFailCase(failCases)
 
+
+    def test_fail_M4(self):
+        failCases = ['A']
+        self.iterateFailCase(failCases)
 
 if __name__ == '__main__':
     unittest.main()
