@@ -30,7 +30,8 @@ myMatrix f(const py::array &b) {
     return v;
 }
 
-myMatrix test_ctor_m1(void) {
+/// [m2] Default constructor.
+myMatrix test_ctor_m2(void) {
     // This is not the greatest test because we only really check that the
     // storage space is populated with zeros and that the rows and cols contain
     // the correct numbers.  The real work in down in matalloc.
@@ -38,8 +39,9 @@ myMatrix test_ctor_m1(void) {
     return A;
 }
 
+/// [m3] Copy constructor.
 template < typename T >
-myMatrix test_ctor_m2(const py::array_t< T, py::array::c_style > &a) {
+myMatrix test_ctor_m3(const py::array_t< T, py::array::c_style > &a) {
     auto info = checkBufferType(a);
     const myMatrix b;
     // Filling data manually to avoid using other functions.
@@ -48,35 +50,49 @@ myMatrix test_ctor_m2(const py::array_t< T, py::array::c_style > &a) {
     return c;
 }
 
+/// [m4] Copy assignment operator.
 template < typename T >
-myMatrix test_ctor_m3(const py::array_t< T, py::array::c_style > &a) {
+myMatrix test_ctor_m4(const py::array_t< T, py::array::c_style > &a) {
     auto info = checkBufferType(a);
     const myMatrix b;
     myMatrix c;
     // Filling data manually to avoid using other functions.
     memcpy(b.pIJ(), info.ptr, sizeof(double)*(b.rows()*b.cols()));
-    c = b;
+    c = b; 
     return c;
 }
 
+/// [m6b] Move constructor. Calls [m3] when DYNAMIC_STORAGE == 0
 template < typename T >
-myMatrix test_ctor_m5(const py::array_t< T, py::array::c_style > &a) {
+myMatrix test_ctor_m6b(const py::array_t< T, py::array::c_style > &a) {
     auto info = checkBufferType(a);
     myMatrix b{};
     // Filling data manually to avoid using other functions.
     memcpy(b.pIJ(), info.ptr, sizeof(double)*(b.rows()*b.cols()));
-    myMatrix c(std::move_if_noexcept(b));
+    myMatrix c = std::move(b);
+    return c;
+}
+
+/// [m7b] Move assignment operator. Calls [m4] when DYNAMIC_STORAGE == 0
+template < typename T >
+myMatrix test_ctor_m7b(const py::array_t< T, py::array::c_style > &a) {
+    auto info = checkBufferType(a);
+    myMatrix b, c;
+    // Filling data manually to avoid using other functions.
+    memcpy(b.pIJ(), info.ptr, sizeof(double)*(b.rows()*b.cols()));
+    c = (b+b); // c = b; always called the move ctor.
     return c;
 }
 
 PYBIND11_MODULE(test_ctors, m) {
     m.doc() = "pybind11 test_ctors";
 
-    m.def("f", &f< double >);
-    m.def("test_ctor_m1", &test_ctor_m1);
-    m.def("test_ctor_m2", &test_ctor_m2< double >);
-    m.def("test_ctor_m3", &test_ctor_m3< double >);
-    m.def("test_ctor_m5", &test_ctor_m5< double >);
+    // m.def("f", &f< double >);
+    m.def("test_ctor_m2",  &test_ctor_m2);
+    m.def("test_ctor_m3",  &test_ctor_m3< double >);
+    m.def("test_ctor_m4",  &test_ctor_m4< double >);
+    m.def("test_ctor_m6b", &test_ctor_m6b< double >);
+    m.def("test_ctor_m7b", &test_ctor_m7b< double >);
 
     py::class_< myMatrix >(m, "myMatrix", py::buffer_protocol())
         //.def(py::init<py::ssize_t, py::ssize_t>())

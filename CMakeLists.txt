@@ -30,7 +30,7 @@ else()
                         -Wno-unused-variable -Wno-unused-function -fmax-errors=2)    
 endif()
 
-#add_compile_definitions(DYNAMIC_STORAGE)
+add_compile_definitions(DYNAMIC_STORAGE=0)
 #add_compile_definitions(TESTING)
 
 add_subdirectory(tests_cpp)

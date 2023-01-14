@@ -30,23 +30,23 @@ class TestCompilation(unittest.TestCase):
                 rc = child.returncode
                 self.assertNotEqual(rc, 0)
 
-    def test_pass_M0(self):
+    def test_pass_M1(self):
         child = sp.run(['g++', '-std=c++17', '-DTESTING',
-                        '-DPASS_M0', '-I..', 'test_compilation_errors.cpp'])
+                        '-DPASS_M1', '-I..', 'test_compilation_errors.cpp'])
         rc = child.returncode
         self.assertEqual(rc, 0)
 
         child = sp.run('./a.out', capture_output=True, text=True)
-        pass_00 = re.compile(r'\[m0\]').match(child.stderr)
+        pass_00 = re.compile(r'\[m1a\]', re.MULTILINE).search(child.stderr)
         self.assertIsNot(pass_00, None)
 
         child = sp.run(['/bin/rm', '-f', './a.out'])
 
-    def test_fail_M1(self):
+    def test_fail_M2(self):
         failCases = ['A', 'B', 'C', 'D', 'E']
         self.iterateFailCase(failCases)
 
-    def test_fail_M2(self):
+    def test_fail_M3(self):
         failCases = ['A', 'B', 'C']
         self.iterateFailCase(failCases)
 

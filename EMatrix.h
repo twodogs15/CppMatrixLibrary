@@ -27,7 +27,11 @@
 
 // Also set in the top level cmake file
 //#define TESTING
-//#define DYNAMIC_STORAGE
+
+#ifndef DYNAMIC_STORAGE
+#define DYNAMIC_STORAGE 0
+#endif
+
 //#define USE_LAPACK
 
 #ifdef TESTING
@@ -39,21 +43,21 @@
 namespace ematrix {
 
 
-#ifdef DYNAMIC_STORAGE
-#define BEGIN(x) (x)
-#define END(x) (x+tRows*tCols)
-#else
+#if DYNAMIC_STORAGE == 0
 #define BEGIN(x) std::begin(x)
 #define END(x) std::end(x)
+#else
+#define BEGIN(x) (x)
+#define END(x) (x+tRows*tCols)
 #endif
 
 template < typename tData, size_t tRows, size_t tCols >
 class Matrix {
   protected:
-    /// Matrix memory allocation/storage assignment
+    /// [m0] Matrix memory allocation/storage assignment
     void matalloc (void);
 
-#ifndef DYNAMIC_STORAGE
+#if DYNAMIC_STORAGE == 0
     tData* ij[tRows];
     tData storage[tRows*tCols];
 #else
@@ -64,49 +68,51 @@ class Matrix {
   public:
     // Numeric labeling m1 - m? are identifiers to help keep track of testing
 
-    /// [m0] Virtual destructor.
+    /// [m1] Virtual destructor.
     virtual ~Matrix ();
 
-    /** [m1] Default constructor.
+    /** [m2] Default constructor.
      *  Usage: Matrix<double,2,3> A;
      */
     Matrix ();
 
-    /** [m2] Copy constructor (not to be confused with the assignment operator).
+    /** [m3] Copy constructor. (not to be confused with the assignment operator)
      *  Usage: Matrix<float,2,3> A;
      *         Matrix<float,2,3> B=A;
      */
     Matrix (const Matrix< tData, tRows, tCols >& R);
 
-    /** [m3] Assignment operator (not to be confused with the copy constructor).
+    /** [m4] Copy assignment operator. (not to be confused with the copy constructor)
      *  Usage: C = A - B;
      */
-    const Matrix< tData, tRows, tCols >& operator = (const Matrix< tData, tRows, tCols >& R);
+    const Matrix< tData, tRows, tCols >& operator=(const Matrix< tData, tRows, tCols >& R);
 
-#ifndef DYNAMIC_STORAGE
-    /** [m4] Explicitly defaulted move and assignment constructors
+#if DYNAMIC_STORAGE == 0
+    /** [m5] Explicitly defaulted move and assignment constructors
      *  Usage Move: Matrix<float,2,3> A; Matrix<float,2,3> B=A;
      *      Assign: B=A;
      *  Note: Since C++ 17 these statements explicitly tell the compiler to
-     *  generate the implicit versions.  These are not testable.
+     *  generate the implicit versions.  These are not testable without examining the assembly.
+     *  Note 2: Implementing the lines below work in compiled code, but core dump
+     *  in mixed language programing used for Python testing.
      */
     //Matrix (Matrix< tData, tRows, tCols > && R) noexcept = default;
     //Matrix< tData, tRows, tCols > &operator = (Matrix< tData, tRows, tCols > && R) noexcept = default;
 #else
-    /** [m5] Move constructor (not to be confused with the copy constructor).
+    /** [m6b] Move constructor. (not to be confused with the copy constructor)
      *  Usage: Matrix<float,2,3> A;
      *         Matrix<float,2,3> B=A;
      */
     Matrix (Matrix< tData, tRows, tCols > && R) noexcept;
 
-    /** [m6] Copy constructor (not to be confused with the assignment operator).
+    /** [m7b] Move assignment operator. (not to be confused with the copy assignment operator)
      *  Usage: Matrix<float,2,3> A, B;
      *         Matrix<float,2,3> B=A;
      */
     Matrix< tData, tRows, tCols > &operator = (Matrix< tData, tRows, tCols > && R) noexcept;
 #endif
 
-    /** Memory, i.e. pointer or array, initialize constructor.
+    /** [m8] Memory, i.e. pointer or array, initialize constructor.
      *  Usage: float a[2][3] = {{1.0,2.0,3.0},{4.0,5.0,6.0}};
      *         Matrix<float,2,3> A(&a[0][0]);
      */
@@ -477,22 +483,26 @@ class Matrix {
 
 };  // EOC: End of Class
 
-#ifndef DYNAMIC_STORAGE
+#if DYNAMIC_STORAGE == 0
+/// [m0a] Matrix memory allocation/storage assignment.
 template < class tData, size_t tRows, size_t tCols >
 void Matrix< tData, tRows, tCols >::matalloc(void) {
     ij[0] = &storage[0];
     for (size_t iIndex = 1; iIndex < tRows; iIndex++)
         ij[iIndex] = ij[iIndex - 1] + tCols;
+    HERE("[m0a] void Matrix< tData, tRows, tCols >::matalloc(void)");
 }
 
+/// [m1a] Virtual destructor.
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::~Matrix() {
-    //HERE("~Matrix()");
+    HERE("[m1a] ~Matrix()");
 }
 #else
+/// [m0b] Matrix memory allocation/storage assignment.
 template < class tData, size_t tRows, size_t tCols >
 void Matrix< tData, tRows, tCols >::matalloc(void) {
-    assert(0<tRows && 0<tCols);
+    const char fcnId[] = "[m0b] matalloc(void)";
 
     ij = new tData*[tRows];
     assert(ij);
@@ -504,25 +514,29 @@ void Matrix< tData, tRows, tCols >::matalloc(void) {
     for (size_t i = 1; i < tRows; i++) {
         ij[i] = ij[i - 1] + tCols;
     }
-    //HERE("void Matrix< tData, tRows, tCols >::matalloc(void)");
+    HERE(fcnId);
 }
 
+/// [m1b] Virtual destructor.
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::~Matrix() {
+    const char fcnId[] = "[m1b] ~Matrix()";
     // Need to test for the 1x1 case. Might need delete storage/ij.
     if(storage) delete[] storage;
     storage = nullptr;
     if(ij) delete[] ij;
     ij = nullptr;
-    //HERE("~Matrix()");
+    HERE(fcnId);
 }
 
+/// [m6b] Move constructor.
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::Matrix(Matrix && R) noexcept :
     ij{ std::move(R.ij) }, storage{ std::move(R.storage) } {
+    const char fcnId[] = "[m6b] Matrix(Matrix && R) noexcept";
     R.ij = nullptr;
     R.storage = nullptr;
-    HERE("Matrix< tData, tRows, tCols >::Matrix(Matrix && R) noexcept");
+    HERE(fcnId);
 }
 
 /*
@@ -534,12 +548,12 @@ Matrix< tData, tRows, tCols >::Matrix(Matrix && R) noexcept :
 }
 */
 
+/// [m7b] Move assignment operator.
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >& Matrix< tData, tRows, tCols >::operator =
 (Matrix< tData, tRows, tCols >&& R) noexcept {
+    const char fcnId[] = "[m7b] operator=(Matrix<tData,tRows,tCols>&& R) noexcept";
 
-    // Should not need this, compiler should flag it
-    assert((tRows == R.rows()) && (tCols == R.cols()));
     if( this != &R ) {
         delete[] storage;
         delete[] ij;
@@ -551,12 +565,15 @@ Matrix< tData, tRows, tCols >& Matrix< tData, tRows, tCols >::operator =
         R.storage = nullptr;
         R.ij = nullptr;
     }
+    HERE(fcnId);
     return *this;
 }
 #endif
 
+/// [m2] Default constructor.
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::Matrix() { 
+    const char fcnId[] = "[m2] Matrix()";
     matalloc();
 
     // On some systems, 2 can be much faster that 1 (30x) but we will favor
@@ -564,30 +581,33 @@ Matrix< tData, tRows, tCols >::Matrix() {
     // is not correct when using non built-in types, e.g. complex<double>.
     // 1. std::memset (storage, 0x0, sizeof(storage));
     // 2. std::memset (reinterpret_cast<char*>(&storage[0]), '\0', sizeof(storage));
-    HERE("Matrix< tData, tRows, tCols >::Matrix()");
     std::fill(BEGIN(storage), END(storage), tData(0));
+    HERE(fcnId);
 }
 
+/// [m3] Copy constructor.
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::Matrix(const Matrix & R) {
+    const char fcnId[] = "[m3] Matrix(const Matrix & R)";
     matalloc();
 
     // Choosing idiomatic C++ over potential speed
     // std::memcpy(storage, R.storage, sizeof(storage));
     std::copy(BEGIN(R.storage), END(R.storage), BEGIN(storage));
-    HERE("Matrix< tData, tRows, tCols >::Matrix(const Matrix & R)");
+    HERE(fcnId);
 }
 
+/// [m4] Copy assignment operator.
 template < class tData, size_t tRows, size_t tCols >
-const Matrix< tData, tRows, tCols > & Matrix< tData, tRows, tCols >::operator = (const Matrix< tData, tRows, tCols > & R) {
-    // Should not need this assert, the compiler should error out. Remove when tested
-    assert((tRows == R.rows()) && (tCols == R.cols()));
+const Matrix< tData, tRows, tCols >& Matrix< tData, tRows, tCols >::operator=(const Matrix< tData, tRows, tCols > & R) {
+    const char fcnId[] = "[m4] operator=(const Matrix< tData, tRows, tCols > & R)";
 
     if( this != &R ) {
         // Choosing idiomatic C++ over potential speed
         // std::memcpy(storage, R.storage, sizeof(storage));
         std::copy(BEGIN(R.storage), END(R.storage), BEGIN(storage));
     }
+    HERE(fcnId);
     return *this;
 }
 
