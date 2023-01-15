@@ -696,7 +696,7 @@ tData & Matrix< tData, tRows, tCols >::operator () (size_t iRowIndex, size_t iCo
 template < class tData, size_t tRows, size_t tCols >
 tData & Matrix< tData, tRows, tCols >::operator () (size_t iIndex) const {
     assert(tRows==1 || tCols==1);
-    if(tCols == 1) {
+    if constexpr(tCols == 1) {
         assert(1<=iIndex && iIndex<=tRows);
         return ij[iIndex-1][0];
     } else { // (iRows == 1)
