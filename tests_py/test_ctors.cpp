@@ -84,15 +84,46 @@ myMatrix test_ctor_m7b(const py::array_t< T, py::array::c_style > &a) {
     return c;
 }
 
+/// [m8] Memory, i.e. pointer or array, initialize constructor.
+template < typename T >
+myMatrix test_ctor_m8(const py::array_t< T, py::array::c_style > &a) {
+    auto info = checkBufferType(a);
+    myMatrix b(reinterpret_cast<T*>(info.ptr));
+    return b;
+}
+
+/// [m9] STL list initialize constructor.
+template < typename T >
+myMatrix test_ctor_m9(const py::array_t< T, py::array::c_style > &a) {
+    auto info = checkBufferType(a);
+    T* p = reinterpret_cast<T*>(info.ptr);
+    myMatrix b = {p[0], p[1], p[2], p[3], p[4], p[5]};
+    return b;
+}
+
+/// [m10] STL list initialize constructor.
+template < typename T >
+myMatrix test_ctor_m10(const py::array_t< T, py::array::c_style > &a) {
+    auto info = checkBufferType(a);
+    T* p = reinterpret_cast<T*>(info.ptr);
+    myMatrix b;
+    b = {p[0], p[1], p[2], p[3], p[4], p[5]};
+    // TODO: Need to figure out how to test the asserted case of too many elements.
+    return b;
+}
+
 PYBIND11_MODULE(test_ctors, m) {
     m.doc() = "pybind11 test_ctors";
 
     // m.def("f", &f< double >);
     m.def("test_ctor_m2",  &test_ctor_m2);
-    m.def("test_ctor_m3",  &test_ctor_m3< double >);
-    m.def("test_ctor_m4",  &test_ctor_m4< double >);
+    m.def("test_ctor_m3",  &test_ctor_m3 < double >);
+    m.def("test_ctor_m4",  &test_ctor_m4 < double >);
     m.def("test_ctor_m6b", &test_ctor_m6b< double >);
     m.def("test_ctor_m7b", &test_ctor_m7b< double >);
+    m.def("test_ctor_m8",  &test_ctor_m8 < double >);
+    m.def("test_ctor_m9",  &test_ctor_m9 < double >);
+    m.def("test_ctor_m10", &test_ctor_m10< double >);
 
     py::class_< myMatrix >(m, "myMatrix", py::buffer_protocol())
         //.def(py::init<py::ssize_t, py::ssize_t>())

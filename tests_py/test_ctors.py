@@ -7,7 +7,7 @@ import inspect
 
 class testCtors(unittest.TestCase):
 
-    verbose = True
+    verbose = False
 
     def printStatus(self, caller):
         if self.verbose is True:
@@ -69,6 +69,36 @@ class testCtors(unittest.TestCase):
 
         self.assertEqual(a.shape, c.shape)
         self.assertIsNone(np.testing.assert_array_equal(a+a, c))  
+        self.printStatus(inspect.stack()[0][3])
+
+    # [m8] Memory, i.e. pointer or array, initialize constructor.
+    def test_ctor_m8(self):
+        a = np.array([[1, 2, 3], [4, 5, 6]])
+        b = test_ctors.test_ctor_m8(a)
+        c = np.array(b)
+
+        self.assertEqual(a.shape, c.shape)
+        self.assertIsNone(np.testing.assert_array_equal(a, c))  
+        self.printStatus(inspect.stack()[0][3])
+
+    # [m9] STL list initialize constructor.
+    def test_ctor_m9(self):
+        a = np.array([[1, 2, 3], [4, 5, 6]])
+        b = test_ctors.test_ctor_m9(a)
+        c = np.array(b)
+
+        self.assertEqual(a.shape, c.shape)
+        self.assertIsNone(np.testing.assert_array_equal(a, c))  
+        self.printStatus(inspect.stack()[0][3])
+
+    # [m10] STL list initialize constructor.
+    def test_ctor_m10(self):
+        a = np.array([[1, 2, 3], [4, 5, 6]])
+        b = test_ctors.test_ctor_m10(a)
+        c = np.array(b)
+
+        self.assertEqual(a.shape, c.shape)
+        self.assertIsNone(np.testing.assert_array_equal(a, c))  
         self.printStatus(inspect.stack()[0][3])
 
 if __name__ == '__main__':

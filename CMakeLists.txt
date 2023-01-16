@@ -31,7 +31,7 @@ else()
 endif()
 
 add_compile_definitions(DYNAMIC_STORAGE=0)
-#add_compile_definitions(TESTING)
+add_compile_definitions(TESTING)
 
 add_subdirectory(tests_cpp)
 

@@ -118,13 +118,13 @@ class Matrix {
      */
     Matrix (const tData* tArray);
 
-    /** STL list initialize constructor (C++11).
+    /** [m9] STL list initialize constructor (C++11).
      *  Usage: Matrix<double,3,3> A = {1.0,2.0,3.0,0.0,0.0,0.0,0,0,0};
      *         Numerical typing is lose as seen above.
      */
     Matrix (const std::initializer_list<tData>& l);
 
-    /** STL initializer_list assignment (C++11).
+    /** [m10] STL initializer_list assignment (C++11).
      *  Usage: Matrix<double,3,2> A;
      *         A = {1.1,2.1,3.1,0.0,0.0,0.0};
      */
@@ -611,16 +611,21 @@ const Matrix< tData, tRows, tCols >& Matrix< tData, tRows, tCols >::operator=(co
     return *this;
 }
 
+/// [m8] Memory, i.e. pointer or array, initialize constructor.
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::Matrix (const tData* tArray) {
+    const char fcnId[] = "[m8] Matrix (const tData* tArray)";
     matalloc();
     // Choosing idiomatic C++ over potential speed
     // std::memcpy(storage, tArray, sizeof(storage));
     std::copy(tArray, tArray+tRows*tCols, BEGIN(storage));
+    HERE(fcnId);
 }
 
+/// [m9] STL list initialize constructor (C++11).
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::Matrix (const std::initializer_list<tData>& l) {
+    const char fcnId[] = "[m9] Matrix (const std::initializer_list<tData>& l)";
     assert( l.size() <= tRows*tCols );
     matalloc();
     std::fill(BEGIN(storage), END(storage), tData(0));
@@ -630,16 +635,20 @@ Matrix< tData, tRows, tCols >::Matrix (const std::initializer_list<tData>& l) {
     for(const auto& element : l) {
         *pij++ = element;
     }
+    HERE(fcnId);
 }
 
+/// [m10] STL initializer_list assignment (C++11).
 template < class tData, size_t tRows, size_t tCols >
 const Matrix< tData, tRows, tCols>& Matrix< tData,tRows,tCols>::operator = (const std::initializer_list<tData>& l) {
+    const char fcnId[] = "[m10] operator = (const std::initializer_list<tData>& l)";
     assert( l.size() <= tRows*tCols );
     std::fill(BEGIN(storage), END(storage), tData(0));
     tData* pij = &storage[0];
     for(const auto& element : l) {
         *pij++ = element;
     }
+    HERE(fcnId);
     return *this;
 }
 
