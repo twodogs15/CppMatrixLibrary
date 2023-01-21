@@ -98,6 +98,7 @@ myMatrix test_ctor_m9(const py::array_t< T, py::array::c_style > &a) {
     auto info = checkBufferType(a);
     T* p = reinterpret_cast<T*>(info.ptr);
     myMatrix b = {p[0], p[1], p[2], p[3], p[4], p[5]};
+    // test_assertion.{cpp,py} tests too many elements.
     return b;
 }
 
@@ -108,7 +109,7 @@ myMatrix test_ctor_m10(const py::array_t< T, py::array::c_style > &a) {
     T* p = reinterpret_cast<T*>(info.ptr);
     myMatrix b;
     b = {p[0], p[1], p[2], p[3], p[4], p[5]};
-    // TODO: Need to figure out how to test the asserted case of too many elements.
+    // test_assertion.{cpp,py} tests too many elements.
     return b;
 }
 

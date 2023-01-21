@@ -7,9 +7,9 @@ import re
 import inspect
 
 
-class TestCompilation(unittest.TestCase):
+class TestAssert(unittest.TestCase):
 
-    dynamicStorage = 'DYNAMIC_STORAGE=0'
+    dynamicStorage = 'DYNAMIC_STORAGE=1'
 
     def iterateFailCase(self, failCases, devNull=True):
         caller = inspect.stack()[1][3]
@@ -20,19 +20,32 @@ class TestCompilation(unittest.TestCase):
             with self.subTest(case=case):
                 tag = f'FAIL_{caseBase}_{case}'
                 print(f'Test Case: {tag}')
-                theArgList = ['g++', '-std=c++17', '-fsyntax-only', '-DTESTING', f'-D{self.dynamicStorage}',
-                              f'-D{tag}', '-I..', 'test_compilation_errors.cpp']
+                theArgList = ['g++', '-std=c++17', '-DTESTING', f'-D{self.dynamicStorage}',
+                              f'-D{tag}', '-I..', 'test_assertion_errors.cpp']
                 if devNull == True:
                     child = sp.run(
                         theArgList, stdout=sp.DEVNULL, stderr=sp.STDOUT)
                 else:
-                    child = sp.run(
-                        theArgList, stderr=sp.STDOUT)
+                    print(theArgList)
+                    child = sp.run(theArgList, stderr=sp.STDOUT)
                 rc = child.returncode
-                self.assertNotEqual(rc, 0)
+                self.assertEqual(rc, 0)
 
-    def test_pass_M1(self):
-        child = sp.run(['g++', '-std=c++17', '-DTESTING', f'-D{self.dynamicStorage}',
+                child = sp.run('./a.out', capture_output=True, text=True)
+                if 1 < len(failCases):
+                    # This probably doesnot work.
+                    ifPass = re.compile(
+                        r'\[m[0-9]+\]', re.MULTILINE).search(child.stderr)
+                else:
+                    ifPass = re.compile(
+                        f'\[{caseBase.lower()}\]', re.MULTILINE).search(child.stderr)
+                self.assertIsNot(ifPass, None)
+
+        child = sp.run(['/bin/rm', '-f', './a.out'])
+
+    def ex_test_pass_M1(self):
+        print(f'Test Case: 00')
+        child = sp.run(['g++', '-std=c++17', '-DTESTING',
                         '-DPASS_M1', '-I..', 'test_compilation_errors.cpp'])
         rc = child.returncode
         self.assertEqual(rc, 0)
@@ -43,15 +56,11 @@ class TestCompilation(unittest.TestCase):
 
         child = sp.run(['/bin/rm', '-f', './a.out'])
 
-    def test_fail_M2(self):
-        failCases = ['A', 'B', 'C', 'D', 'E']
+    def test_fail_M9(self):
+        failCases = ['A']
         self.iterateFailCase(failCases)
 
-    def test_fail_M3(self):
-        failCases = ['A', 'B', 'C']
-        self.iterateFailCase(failCases)
-
-    def test_fail_M4(self):
+    def test_fail_M10(self):
         failCases = ['A']
         self.iterateFailCase(failCases)
 

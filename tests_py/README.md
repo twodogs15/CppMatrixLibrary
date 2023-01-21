@@ -1,4 +1,11 @@
-# On Debugging EMatrix Testing
+# Testing Progress
+
+- Mostly tested up through m10, the list assignment initializer. This includes some assertion errors.
+- Need to finish the following:
+    - Compilation testing with dynamic memory on
+    - Assertion errors in dynamic memory allocation
+
+## On Debugging EMatrix Testing
 
 There does not seem to be an extensive amount information about debugging
 mixed language, Python / C++, programming.  The most useful tip is in the 
