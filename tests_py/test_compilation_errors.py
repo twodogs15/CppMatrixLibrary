@@ -26,10 +26,16 @@ class TestCompilation(unittest.TestCase):
                     child = sp.run(
                         theArgList, stdout=sp.DEVNULL, stderr=sp.STDOUT)
                 else:
+                    print(' '.join(theArgList))
                     child = sp.run(
                         theArgList, stderr=sp.STDOUT)
                 rc = child.returncode
                 self.assertNotEqual(rc, 0)
+
+
+    def test_fail_M0(self):
+        failCases = ['A']
+        self.iterateFailCase(failCases)
 
     def test_pass_M1(self):
         child = sp.run(['g++', '-std=c++17', '-DTESTING', f'-D{self.dynamicStorage}',
@@ -38,7 +44,7 @@ class TestCompilation(unittest.TestCase):
         self.assertEqual(rc, 0)
 
         child = sp.run('./a.out', capture_output=True, text=True)
-        pass_00 = re.compile(r'\[m1a\]', re.MULTILINE).search(child.stderr)
+        pass_00 = re.compile(r'\[m1[ab]\]', re.MULTILINE).search(child.stderr)
         self.assertIsNot(pass_00, None)
 
         child = sp.run(['/bin/rm', '-f', './a.out'])

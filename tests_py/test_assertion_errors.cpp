@@ -6,6 +6,7 @@
 /// \file
 
 #include <iostream>
+#include <climits>
 
 #include "EMatrix.h"
 
@@ -16,9 +17,18 @@ using namespace std;
 #define THE_TYPE double
 #endif
 
+
 int main(void) {
 
- /// [m9] STL list initialize constructor.
+/// [m0a] Matrix memory allocation/storage assignment.
+#ifdef FAIL_M0_A
+        //Matrix< THE_TYPE, 1, (2ul<<30)-1 > A;
+        cout << (2ul<<THESIZE) << endl;
+        Matrix< THE_TYPE, 1, ((2ul<<THESIZE) - (2ul<<9)) > A;
+        cout << sizeof(A) << endl;
+#endif
+
+/// [m9] STL list initialize constructor.
 /// Assertion fail for too many elements.
 #ifdef FAIL_M9_A
     Matrix< THE_TYPE, 2, 3 > A = {1,2,3,4,5,6,7};

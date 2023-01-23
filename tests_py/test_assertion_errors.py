@@ -9,9 +9,9 @@ import inspect
 
 class TestAssert(unittest.TestCase):
 
-    dynamicStorage = 'DYNAMIC_STORAGE=1'
+    dynamicStorage = 'DYNAMIC_STORAGE=0'
 
-    def iterateFailCase(self, failCases, devNull=True):
+    def iterateFailCase(self, failCases, devNull=False):
         caller = inspect.stack()[1][3]
         base = re.compile(r'test_fail_(M\d*)').match(caller)
         caseBase = base.group(1)
@@ -26,7 +26,7 @@ class TestAssert(unittest.TestCase):
                     child = sp.run(
                         theArgList, stdout=sp.DEVNULL, stderr=sp.STDOUT)
                 else:
-                    print(theArgList)
+                    print(' '.join(theArgList))
                     child = sp.run(theArgList, stderr=sp.STDOUT)
                 rc = child.returncode
                 self.assertEqual(rc, 0)
@@ -41,7 +41,7 @@ class TestAssert(unittest.TestCase):
                         f'\[{caseBase.lower()}\]', re.MULTILINE).search(child.stderr)
                 self.assertIsNot(ifPass, None)
 
-        child = sp.run(['/bin/rm', '-f', './a.out'])
+        #child = sp.run(['/bin/rm', '-f', './a.out'])
 
     def ex_test_pass_M1(self):
         print(f'Test Case: 00')
@@ -55,6 +55,10 @@ class TestAssert(unittest.TestCase):
         self.assertIsNot(pass_00, None)
 
         child = sp.run(['/bin/rm', '-f', './a.out'])
+
+    def test_fail_M0(self):
+        failCases = ['A']
+        self.iterateFailCase(failCases)
 
     def test_fail_M9(self):
         failCases = ['A']
