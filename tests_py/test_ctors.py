@@ -101,5 +101,40 @@ class testCtors(unittest.TestCase):
         self.assertIsNone(np.testing.assert_array_equal(a, c))  
         self.printStatus(inspect.stack()[0][3])
 
+    # [m11] Builtin C/C++ array copy to Matrix.
+    def test_ctor_m11(self):
+        a = np.array([[1, 2, 3], [4, 5, 6]])
+        b = test_ctors.test_ctor_m11(a)
+        c = np.array(b)
+
+        self.assertEqual(a.shape, c.shape)
+        self.assertIsNone(np.testing.assert_array_equal(a, c))  
+        self.printStatus(inspect.stack()[0][3])
+
+
+    # [m16] Submatrix assignment (n-1) based.
+    def test_ctor_m16(self):
+        a = np.array([[1, 2], [4, 5]])
+        b = test_ctors.test_ctor_m16(a)
+        c = np.array(b)
+        d = np.array([[0, 1, 2], [0, 4, 5]])
+
+        self.assertEqual(d.shape, c.shape)
+        self.assertIsNone(np.testing.assert_array_equal(d, c))  
+        self.printStatus(inspect.stack()[0][3])
+
+    # [m17] Submatrix extraction (n-1) based.
+    def test_ctor_m17(self):
+        a = np.array([[0, 0, 1, 2, 3, 0],
+                      [0, 0, 4, 5, 6, 0],
+                      [0, 0, 0, 0, 0, 0]])
+        b = test_ctors.test_ctor_m17(a)
+        c = np.array(b)
+        d = np.array([[1, 2, 3], [4, 5, 6]])
+
+        self.assertEqual(d.shape, c.shape)
+        self.assertIsNone(np.testing.assert_array_equal(d, c))  
+        self.printStatus(inspect.stack()[0][3])
+
 if __name__ == '__main__':
     unittest.main()

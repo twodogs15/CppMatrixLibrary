@@ -33,7 +33,7 @@ class TestCompilation(unittest.TestCase):
                 self.assertNotEqual(rc, 0)
 
 
-    def test_fail_M0(self):
+    def stub_test_fail_M0(self):
         failCases = ['A']
         self.iterateFailCase(failCases)
 

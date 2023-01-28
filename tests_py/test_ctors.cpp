@@ -113,6 +113,55 @@ myMatrix test_ctor_m10(const py::array_t< T, py::array::c_style > &a) {
     return b;
 }
 
+/// [m11] Builtin C/C++ array copy to Matrix.
+template < typename T >
+myMatrix test_ctor_m11(const py::array_t< T, py::array::c_style > &a) {
+    auto info = checkBufferType(a);
+    T* p = reinterpret_cast<T*>(info.ptr);
+    myMatrix b;
+    b.load(p);
+    return b;
+}
+
+/// [m12] memcpy to C-Style Array.
+template < typename T >
+myMatrix test_ctor_m12(const py::array_t< T, py::array::c_style > &a) {
+    auto info = checkBufferType(a);
+    myMatrix b(reinterpret_cast<T*>(info.ptr));
+    T array[2][3] = {0};
+    b.memcpy(&array[0][0]);
+    myMatrix c(&array[0][0]);
+    return c;
+}
+
+/// [m16] Submatrix assignment (n-1) based.
+template < typename T >
+myMatrix test_ctor_m16(const py::array_t< T, py::array::c_style > &a) {
+    auto info = checkBufferType(a);
+    myMatrix b;
+    ematrix::Matrix< T, 2, 2> c;
+    // Filling data manually to avoid using other functions.
+    memcpy(c.pIJ(), info.ptr, sizeof(T)*(c.rows()*c.cols()));
+    b.submatrix(0,1,c);
+    return b;
+}
+
+/// [m17] Submatrix extraction (n-1) based.
+// Cannot use template here.  see comment below
+myMatrix test_ctor_m17(const py::array_t< double, py::array::c_style > &a) {
+    auto info = checkBufferType(a);
+    
+    // Cannot use a type template in the matrix below. the call to 
+    // submatrix<y,y>() will not compile otherwise
+    ematrix::Matrix< double, 3, 6 > c;
+    memcpy(c.pIJ(), info.ptr, sizeof(double)*(c.rows()*c.cols()));
+
+    myMatrix b;
+    
+    b = c.submatrix< 2, 3 >(0,2);
+    return b;
+}
+
 PYBIND11_MODULE(test_ctors, m) {
     m.doc() = "pybind11 test_ctors";
 
@@ -125,6 +174,10 @@ PYBIND11_MODULE(test_ctors, m) {
     m.def("test_ctor_m8",  &test_ctor_m8 < double >);
     m.def("test_ctor_m9",  &test_ctor_m9 < double >);
     m.def("test_ctor_m10", &test_ctor_m10< double >);
+    m.def("test_ctor_m11", &test_ctor_m11< double >);
+    m.def("test_ctor_m12", &test_ctor_m12< double >);
+    m.def("test_ctor_m16", &test_ctor_m16< double >);
+    m.def("test_ctor_m17", &test_ctor_m17);
 
     py::class_< myMatrix >(m, "myMatrix", py::buffer_protocol())
         //.def(py::init<py::ssize_t, py::ssize_t>())

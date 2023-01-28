@@ -20,7 +20,7 @@ class TestAssert(unittest.TestCase):
             with self.subTest(case=case):
                 tag = f'FAIL_{caseBase}_{case}'
                 print(f'Test Case: {tag}')
-                theArgList = ['g++', '-std=c++17', '-DTESTING', f'-D{self.dynamicStorage}',
+                theArgList = ['clang++', '-std=c++17', '-DTESTING', f'-D{self.dynamicStorage}',
                               f'-D{tag}', '-I..', 'test_assertion_errors.cpp']
                 if devNull == True:
                     child = sp.run(
@@ -36,9 +36,11 @@ class TestAssert(unittest.TestCase):
                     # This probably doesnot work.
                     ifPass = re.compile(
                         r'\[m[0-9]+\]', re.MULTILINE).search(child.stderr)
+
                 else:
                     ifPass = re.compile(
                         f'\[{caseBase.lower()}\]', re.MULTILINE).search(child.stderr)
+
                 self.assertIsNot(ifPass, None)
 
         #child = sp.run(['/bin/rm', '-f', './a.out'])
@@ -56,7 +58,19 @@ class TestAssert(unittest.TestCase):
 
         child = sp.run(['/bin/rm', '-f', './a.out'])
 
-    def test_fail_M0(self):
+    # M0 is the allocation function.  In the case of dynamic storage we use new.
+    # The static allocation is a local variable.  This function is difficult to
+    # test as the assertion fail conditions are system dependent.  The default
+    # Linux stack limit is 8 MB.  On a Chromebook Linux virtual machine, The
+    # max dynamic object Matrix< double, 1, (1ul<<27) > has an object size of
+    # 24 bytes, but allocates 1 GB of dynamic memory.  A matrix of
+    # 1 x (1ul<<28) fails. In the static case, the object
+    # Matrix< double, 1, (1ul<<20) - 0x0427 > constructs with an object size of
+    # almost 8 MB.  So that we have something to test.  Also, these errors seg
+    # fault and cannot be caught by exception and does not cause a compilation
+    # error so we are just going to turn this test off.
+
+    def x_test_fail_M0(self):
         failCases = ['A']
         self.iterateFailCase(failCases)
 

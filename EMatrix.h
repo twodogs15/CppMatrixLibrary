@@ -130,7 +130,7 @@ class Matrix {
      */
     const Matrix< tData, tRows, tCols >& operator = (const std::initializer_list<tData>& l);
 
-    /** Builtin C/C++ array copy to Matrix.
+    /** [m11] Builtin C/C++ array copy to Matrix.
      *  Usage: double a[2][3] = {{1.1,2.1,3.1},{4.0,5.0,6.0}};
      *         Matrix<double,2,3> A;
      *         A.load(&a[0][0]);
@@ -139,44 +139,14 @@ class Matrix {
      */
     void load(const tData* tArray); // consider changing to memset?
 
-    /** Submatrix assignment (n-1) based
-     *  Usage: Matrix< double, 3, 6> A;
-     *         Matrix< double, 2, 3> one2six = {1,2,3,4,5,6};
-     *         A.submatrix(0,2,one2six);
-     *  Results: [0  0  1  2  3  0
-     *            0  0  4  5  6  0
-     *            0  0  0  0  0  0]
-     */
-    template < size_t tRows0, size_t tCols0 >
-    void submatrix(size_t insertRow, size_t insertCol, const Matrix< tData, tRows0, tCols0>& rval);
-
-    /** Submatrix extraction (n-1) based
-     *  Usage: Matrix< double, 3, 6 > A;
-     *         Matrix< double, 2, 3 > one2six = {1,2,3,4,5,6};
-     *         A.submatrix(0,2,one2six);
-     *         Matrix< double, 2, 2 > B;
-     *         // Need to specify the return size in the template, <2,2> below
-     *         B = A.submatrix< 2, 2 >(1,3);
-     *
-     *  Results: A = [0  0  1  2  3  0
-     *                0  0  4  5  6  0
-     *                0  0  0  0  0  0];
-     *
-     *           B = [5  6
-     *                0  0];
-     */
-
-    template < size_t tRows0, size_t tCols0 >
-    Matrix< tData, tRows0, tCols0> submatrix(size_t insertRow, size_t insertCol);
-
-    /** memcpy to C-Style Array
+    /** [x12] memcpy to C-Style Array.
      *  Usage: float x[2][3];
      *         Matrix<double,2,3> X;
      *         X.memcpy(&x[0]);
      */
     void memcpy(tData* tArray);
 
-    /** C/C++ like element access (0 to n-1), get and set.
+    /** [x13] C/C++ like element access (0 to n-1), get and set.
      *  Usage: Matrix<double,3,2> A = {1,2,3,4,5,6};
      *         A[0][0] = 7;
      *         cerr << A[2][1] << endl;
@@ -188,7 +158,7 @@ class Matrix {
         return ij[iRowIndex];
     }
 
-    /** Data access operator for Octave and FORTRAN indexing (1 to n).
+    /** [x14] Data access operator for Octave and FORTRAN indexing (1 to n).
      *  Note this does not imply FORTRAN memory storage
      *  Usage: Matrix<double,3,2> A = {1,2,3,4,5,6};
      *         A(1,1) = 8;
@@ -196,13 +166,42 @@ class Matrix {
      */
     tData& operator () (size_t iRowIndex, size_t iColIndex) const;
 
-    /** Vector Data access operator for Octave and FORTRAN indexing (1 to n).
+    /** [x15] Vector Data access operator for Octave and FORTRAN indexing (1 to n).
      *  Usage: Matrix<double,6,1> V = {1,2,3,4,5,6}; V(1) = 8; cerr << V(6) << endl;
      *  Usage: Matrix<double,1,6> U = {1,2,3,4,5,6}; U(1) = 8; cerr << U(6) << endl;
      *  Note a non 1xn or nx1 matrix will assertion fail.  Could not determine a way
      *  to force compile time error.
      */
     tData& operator () (size_t iIndex) const;
+
+    /** [m16] Submatrix assignment (n-1) based.
+     *  Usage: Matrix< double, 3, 6> A;
+     *         Matrix< double, 2, 3> B = {1,2,3,4,5,6};
+     *         A.submatrix(0,2,B);
+     *  Results: [0  0  1  2  3  0
+     *            0  0  4  5  6  0
+     *            0  0  0  0  0  0]
+     */
+    template < size_t tRows0, size_t tCols0 >
+    void submatrix(size_t insertRow, size_t insertCol, const Matrix< tData, tRows0, tCols0>& rval);
+
+    /** [m17] Submatrix extraction (n-1) based.
+     *  Usage: Matrix< double, 3, 6 > A;
+     *         Matrix< double, 2, 3 > B = {1,2,3,4,5,6};
+     *         A.submatrix(0,2,B);
+     *         Matrix< double, 2, 2 > C;
+     *         // Need to specify the return size in the template, <2,2> below
+     *         C = A.submatrix< 2, 2 >(1,3);
+     *
+     *  Results: A = [0  0  1  2  3  0
+     *                0  0  4  5  6  0
+     *                0  0  0  0  0  0];
+     *
+     *           B = [5  6
+     *                0  0];
+     */
+    template < size_t tRows0, size_t tCols0 >
+    Matrix< tData, tRows0, tCols0> submatrix(size_t insertRow, size_t insertCol);
 
     /** Overloaded output stream operator <<.
      *  Usage: log_file << A;
@@ -487,10 +486,10 @@ class Matrix {
 /// [m0a] Matrix memory allocation/storage assignment.
 template < class tData, size_t tRows, size_t tCols >
 void Matrix< tData, tRows, tCols >::matalloc(void) {
+    HERE("[m0a] matalloc(void)");
     ij[0] = &storage[0];
     for (size_t iIndex = 1; iIndex < tRows; iIndex++)
         ij[iIndex] = ij[iIndex - 1] + tCols;
-    HERE("[m0a] void Matrix< tData, tRows, tCols >::matalloc(void)");
 }
 
 /// [m1a] Virtual destructor.
@@ -503,6 +502,7 @@ Matrix< tData, tRows, tCols >::~Matrix() {
 template < class tData, size_t tRows, size_t tCols >
 void Matrix< tData, tRows, tCols >::matalloc(void) {
     const char fcnId[] = "[m0b] matalloc(void)";
+    HERE(fcnId);
 
     ij = new tData*[tRows];
     assert(ij);
@@ -514,19 +514,19 @@ void Matrix< tData, tRows, tCols >::matalloc(void) {
     for (size_t i = 1; i < tRows; i++) {
         ij[i] = ij[i - 1] + tCols;
     }
-    HERE(fcnId);
+
 }
 
 /// [m1b] Virtual destructor.
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::~Matrix() {
     const char fcnId[] = "[m1b] ~Matrix()";
+    HERE(fcnId);
     // Need to test for the 1x1 case. Might need delete storage/ij.
     if(storage) delete[] storage;
     storage = nullptr;
     if(ij) delete[] ij;
     ij = nullptr;
-    HERE(fcnId);
 }
 
 /// [m6b] Move constructor.
@@ -553,6 +553,7 @@ template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >& Matrix< tData, tRows, tCols >::operator =
 (Matrix< tData, tRows, tCols >&& R) noexcept {
     const char fcnId[] = "[m7b] operator=(Matrix<tData,tRows,tCols>&& R) noexcept";
+    HERE(fcnId);
 
     if( this != &R ) {
         delete[] storage;
@@ -565,7 +566,6 @@ Matrix< tData, tRows, tCols >& Matrix< tData, tRows, tCols >::operator =
         R.storage = nullptr;
         R.ij = nullptr;
     }
-    HERE(fcnId);
     return *this;
 }
 #endif
@@ -574,6 +574,7 @@ Matrix< tData, tRows, tCols >& Matrix< tData, tRows, tCols >::operator =
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::Matrix() { 
     const char fcnId[] = "[m2] Matrix()";
+    HERE(fcnId);
     matalloc();
 
     // On some systems, 2 can be much faster that 1 (30x) but we will favor
@@ -582,7 +583,6 @@ Matrix< tData, tRows, tCols >::Matrix() {
     // 1. std::memset (storage, 0x0, sizeof(storage));
     // 2. std::memset (reinterpret_cast<char*>(&storage[0]), '\0', sizeof(storage));
     std::fill(BEGIN(storage), END(storage), tData(0));
-    HERE(fcnId);
 }
 
 /// [m3] Copy constructor.
@@ -615,17 +615,20 @@ const Matrix< tData, tRows, tCols >& Matrix< tData, tRows, tCols >::operator=(co
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::Matrix (const tData* tArray) {
     const char fcnId[] = "[m8] Matrix (const tData* tArray)";
+    HERE(fcnId);
     matalloc();
     // Choosing idiomatic C++ over potential speed
     // std::memcpy(storage, tArray, sizeof(storage));
     std::copy(tArray, tArray+tRows*tCols, BEGIN(storage));
-    HERE(fcnId);
+
 }
 
 /// [m9] STL list initialize constructor (C++11).
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::Matrix (const std::initializer_list<tData>& l) {
     const char fcnId[] = "[m9] Matrix (const std::initializer_list<tData>& l)";
+    HERE(fcnId);
+
     assert( l.size() <= tRows*tCols );
     matalloc();
     std::fill(BEGIN(storage), END(storage), tData(0));
@@ -635,53 +638,30 @@ Matrix< tData, tRows, tCols >::Matrix (const std::initializer_list<tData>& l) {
     for(const auto& element : l) {
         *pij++ = element;
     }
-    HERE(fcnId);
 }
 
 /// [m10] STL initializer_list assignment (C++11).
 template < class tData, size_t tRows, size_t tCols >
 const Matrix< tData, tRows, tCols>& Matrix< tData,tRows,tCols>::operator = (const std::initializer_list<tData>& l) {
     const char fcnId[] = "[m10] operator = (const std::initializer_list<tData>& l)";
-    assert( l.size() <= tRows*tCols );
+    HERE(fcnId);
+
+    assert(l.size() <= tRows*tCols);
     std::fill(BEGIN(storage), END(storage), tData(0));
     tData* pij = &storage[0];
     for(const auto& element : l) {
         *pij++ = element;
     }
-    HERE(fcnId);
     return *this;
 }
 
 template < class tData, size_t tRows, size_t tCols >
 void Matrix< tData, tRows, tCols >::load(const tData* tArray) {
+    const char fcnId[] = "[m11] load(const tData* tArray)";
+    HERE(fcnId);
     // Choosing idiomatic C++ over potential speed
     // std::memcpy(storage, tArray, sizeof(storage));
     std::copy(tArray, tArray+tRows*tCols, BEGIN(storage));
-}
-
-template < class tData,  size_t tRows,  size_t tCols>
-template < size_t tRows0, size_t tCols0 >
-void Matrix< tData, tRows, tCols >::submatrix(size_t insertRow, size_t insertCol, const Matrix< tData, tRows0, tCols0>& rval) {
-    assert((insertRow        <= tRows) && (insertCol        <= tCols));
-    assert((insertRow+tRows0 <= tRows) && (insertCol+tCols0 <= tCols));
-
-    for(size_t i = 0; i < tRows0; i++)
-        for(size_t j = 0; j < tCols0; j++)
-            ij[insertRow+i][insertCol+j] = rval[i][j];
-}
-
-template < class tData,  size_t tRows,  size_t tCols>
-template < size_t tRows0, size_t tCols0 >
-Matrix< tData, tRows0, tCols0> Matrix< tData, tRows, tCols >::submatrix(size_t insertRow, size_t insertCol) {
-    assert((insertRow        <= tRows) && (insertCol        <= tCols));
-    assert((insertRow+tRows0 <= tRows) && (insertCol+tCols0 <= tCols));
-
-    Matrix< tData, tRows0, tCols0> lval;
-
-    for(size_t i = 0; i < tRows0; i++)
-        for(size_t j = 0; j < tCols0; j++)
-            lval[i][j] = ij[insertRow+i][insertCol+j];
-    return lval;
 }
 
 template < class tData, size_t tRows, size_t tCols >
@@ -714,8 +694,38 @@ tData & Matrix< tData, tRows, tCols >::operator () (size_t iIndex) const {
     }
 }
 
+template < class tData,  size_t tRows,  size_t tCols>
+template < size_t tRows0, size_t tCols0 >
+void Matrix< tData, tRows, tCols >::submatrix(size_t insertRow, size_t insertCol, const Matrix< tData, tRows0, tCols0>& rval) {
+    const char fcnId[] = "[m16] submatrix(size_t insertRow, size_t insertCol, const Matrix< tData, tRows0, tCols0>& rval)";
+    HERE(fcnId);
+    assert((insertRow        <= tRows) && (insertCol        <= tCols));
+    assert((insertRow+tRows0 <= tRows) && (insertCol+tCols0 <= tCols));
+
+    for(size_t i = 0; i < tRows0; i++)
+        for(size_t j = 0; j < tCols0; j++)
+            ij[insertRow+i][insertCol+j] = rval[i][j];
+}
+
+template < class tData,  size_t tRows,  size_t tCols>
+template < size_t tRows0, size_t tCols0 >
+Matrix< tData, tRows0, tCols0> Matrix< tData, tRows, tCols >::submatrix(size_t insertRow, size_t insertCol) {
+    const char fcnId[] = "[m13] submatrix(size_t insertRow, size_t insertCol)";
+    HERE(fcnId);
+    
+    assert((insertRow        <= tRows) && (insertCol        <= tCols));
+    assert((insertRow+tRows0 <= tRows) && (insertCol+tCols0 <= tCols));
+
+    Matrix< tData, tRows0, tCols0> lval;
+
+    for(size_t i = 0; i < tRows0; i++)
+        for(size_t j = 0; j < tCols0; j++)
+            lval[i][j] = ij[insertRow+i][insertCol+j];
+    return lval;
+}
+
 template < class tData, size_t tRows, size_t tCols >
-std::ostream& operator << (std::ostream& s,const Matrix< tData, tRows, tCols >& A) {
+std::ostream& operator << (std::ostream& s, const Matrix< tData, tRows, tCols >& A) {
     // Sets new precision, returns old. Should figure out how to modify
     // without code change here.  Switch to exponential as well.
     std::streamsize old_precision = s.precision(8);

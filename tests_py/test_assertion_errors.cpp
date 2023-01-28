@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <climits>
+#include <csignal>
 
 #include "EMatrix.h"
 
@@ -17,16 +18,32 @@ using namespace std;
 #define THE_TYPE double
 #endif
 
+void segfault_sigaction(int signal, siginfo_t *si, void *arg)
+{
+    printf("Caught segfault at address %p\n", si->si_addr);
+    exit(0);
+}
+
 
 int main(void) {
 
 /// [m0a] Matrix memory allocation/storage assignment.
 #ifdef FAIL_M0_A
-        //Matrix< THE_TYPE, 1, (2ul<<30)-1 > A;
-        cout << (2ul<<THESIZE) << endl;
-        Matrix< THE_TYPE, 1, ((2ul<<THESIZE) - (2ul<<9)) > A;
-        cout << sizeof(A) << endl;
-#endif
+    struct sigaction sa;
+
+    memset(&sa, 0, sizeof(struct sigaction));
+    sigemptyset(&sa.sa_mask);
+    sa.sa_sigaction = segfault_sigaction;
+    sa.sa_flags   = SA_SIGINFO;
+
+    sigaction(SIGSEGV, &sa, NULL);
+
+try {
+        Matrix< THE_TYPE, 1, (1ul<<28) > A;
+} catch (std::exception& e) {
+    std::cerr << "Exception caught : " << e.what() << std::endl;
+}
+ #endif
 
 /// [m9] STL list initialize constructor.
 /// Assertion fail for too many elements.
