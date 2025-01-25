@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.27)
 
 # set the project name
 project(navsim VERSION 1.0 LANGUAGES CXX)

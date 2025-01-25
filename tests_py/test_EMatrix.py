@@ -16,7 +16,7 @@ class TestSum(unittest.TestCase):
 
     def test_diff(self):
         m1 = np.array([[1, 2, 3], [4, 5, 6]]).astype(np.float64)
-        m2 = np.array([[10, 20, 30], [40, 50, 60]]).astype(np.float)
+        m2 = np.array([[10, 20, 30], [40, 50, 60]]).astype(np.float64)
         m3 = test_EMatrix.myMatrix(m1)
         m4 = test_EMatrix.myMatrix(m2)
         m5 = np.array(test_EMatrix.sub(m3, m4))

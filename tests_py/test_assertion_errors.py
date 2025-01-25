@@ -20,7 +20,8 @@ class TestAssert(unittest.TestCase):
             with self.subTest(case=case):
                 tag = f'FAIL_{caseBase}_{case}'
                 print(f'Test Case: {tag}')
-                theArgList = ['clang++', '-std=c++17', '-DTESTING', f'-D{self.dynamicStorage}',
+				# sudo apt-get install libc++-dev
+                theArgList = ['clang++', '-std=c++17', '-stdlib=libc++', '-DTESTING', f'-D{self.dynamicStorage}',
                               f'-D{tag}', '-I..', 'test_assertion_errors.cpp']
                 if devNull == True:
                     child = sp.run(
@@ -39,7 +40,7 @@ class TestAssert(unittest.TestCase):
 
                 else:
                     ifPass = re.compile(
-                        f'\[{caseBase.lower()}\]', re.MULTILINE).search(child.stderr)
+                        f'[{caseBase.lower()}]', re.MULTILINE).search(child.stderr)
 
                 self.assertIsNot(ifPass, None)
 
