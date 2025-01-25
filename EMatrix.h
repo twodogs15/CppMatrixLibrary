@@ -42,6 +42,15 @@
 
 namespace ematrix {
 
+template <class T>
+constexpr auto sizeof_array(const T& iarray) {
+    return (sizeof(iarray) / sizeof(iarray[0]));
+}
+
+template <class T, std::size_t t_size>
+void myMemcpy(T (&to)[t_size], T* from) {
+    std::memcpy(to, from, sizeof(T)*t_size);
+}
 
 #if DYNAMIC_STORAGE == 0
 #define BEGIN(x) std::begin(x)
@@ -467,18 +476,20 @@ class Matrix {
     /** Matrix inverse, 2x2 and 3x3 double specializations.
      *  Usage A_inv = inv(A)
      */
-    friend Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >
-    inv(const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R);
+    template < class tData0 >
+    Matrix< tData0, 2, 2 > inv(const Matrix< tData0, 2, 2 >& R);
 
-    friend Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >
-    inv(const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R);
+    template < class tData0 >
+    friend Matrix< tData0, 3, 3 > inv(const Matrix< tData0, 3, 3 >& R);
 
     /** Matrix determinant, 2x2 and 3x3 double specializations.
      *  Usage A_det = det(A)
      */
-    friend double det(const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R);
+    template < class tData0 >
+    friend tData0 det(const Matrix< tData0, 2, 2 >& R);
 
-    friend double det(const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R);
+    template < class tData0 >
+    friend tData0 det(const Matrix< tData0, 3, 3 >& R);
 
 };  // EOC: End of Class
 
@@ -1287,8 +1298,8 @@ std::complex<double> det( const Matrix< std::complex<double>, tRows, tRows >& R 
 //   >>> a,b,c,d,e,f,g,h,i = symbols('a b c d e f g h i')
 //   >>> A = Matrix([[a,b,c],[d,e,f],[g,h,i]])
 //   >>> pprint(A.adjugate()); pprint(A.det())
-Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >
-inv( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R ) {
+template < class tData >
+Matrix< tData, 2, 2 > inv( const Matrix< tData, 2, 2 >& R) {
     double the_det = det(R);
 
     if(std::abs(the_det) < FLT_EPSILON) {
@@ -1300,8 +1311,8 @@ inv( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R )
     return((1.0/the_det)*M);
 }
 
-Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >
-inv( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R ) {
+template < class tData >
+Matrix< tData, 3, 3 > inv( const Matrix< tData, 3, 3 >& R ) {
     double the_det = det(R);
 
     if(std::abs(the_det) < FLT_EPSILON) {
@@ -1325,31 +1336,35 @@ inv( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R )
 //   >>> a,b,c,d,e,f,g,h,i = symbols('a b c d e f g h i')
 //   >>> A = Matrix([[a,b,c],[d,e,f],[g,h,i]])
 //   >>> pprint(A.det())
-double det( const Matrix< double, static_cast<size_t>(2), static_cast<size_t>(2) >& R ) {
+template < class tData >
+tData det( const Matrix< tData, 2, 2 >& R ) {
     return( R[0][0]*R[1][1] - R[0][1]*R[1][0] );
 }
 
-double det( const Matrix< double, static_cast<size_t>(3), static_cast<size_t>(3) >& R ) {
+template < class tData >
+tData det( const Matrix< tData, 3, 3 >& R ) {
     return( R[0][0]*R[1][1]*R[2][2] - R[0][0]*R[1][2]*R[2][1] - R[0][1]*R[1][0]*R[2][2] +
             R[0][1]*R[1][2]*R[2][0] + R[0][2]*R[1][0]*R[2][1] - R[0][2]*R[1][1]*R[2][0] );
 }
 
-typedef  Matrix<double,2,2> MATRIX2x2;
-typedef  Matrix<double,3,3> MATRIX3x3;
-typedef  Matrix<double,4,4> MATRIX4x4;
-typedef  Matrix<double,5,5> MATRIX5x5;
-typedef  Matrix<double,6,6> MATRIX6x6;
-typedef  Matrix<double,7,7> MATRIX7x7;
-typedef  Matrix<double,8,8> MATRIX8x8;
-
-typedef  Matrix<double,2,1> VECTOR2x1;
-typedef  Matrix<double,3,1> VECTOR3x1;
-typedef  Matrix<double,4,1> QUAT4x1;
-typedef  Matrix<double,5,1> VECTOR5x1;
-typedef  Matrix<double,6,1> VECTOR6x1;
-typedef  Matrix<double,7,1> VECTOR7x1;
-typedef  Matrix<double,8,1> VECTOR8x1;
-
 } // from namespace
+
+typedef  ematrix::Matrix<double,2,2> MATRIX2x2;
+typedef  ematrix::Matrix<double,3,3> MATRIX3x3;
+typedef  ematrix::Matrix<double,4,4> MATRIX4x4;
+typedef  ematrix::Matrix<double,5,5> MATRIX5x5;
+typedef  ematrix::Matrix<double,6,6> MATRIX6x6;
+typedef  ematrix::Matrix<double,7,7> MATRIX7x7;
+typedef  ematrix::Matrix<double,8,8> MATRIX8x8;
+typedef  ematrix::Matrix<double,15,15> MATRIX15x15;
+
+typedef  ematrix::Matrix<double,2,1> VECTOR2x1;
+typedef  ematrix::Matrix<double,3,1> VECTOR3x1;
+typedef  ematrix::Matrix<double,4,1> QUAT4x1;
+typedef  ematrix::Matrix<double,5,1> VECTOR5x1;
+typedef  ematrix::Matrix<double,6,1> VECTOR6x1;
+typedef  ematrix::Matrix<double,7,1> VECTOR7x1;
+typedef  ematrix::Matrix<double,8,1> VECTOR8x1;
+typedef  ematrix::Matrix<double,15,1> VECTOR15x1;
 
 #endif // from _EMATRIX_H
