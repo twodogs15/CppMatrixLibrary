@@ -43,7 +43,7 @@
 namespace ematrix {
 
 template <class T>
-constexpr auto sizeof_array(const T& iarray) {
+T sizeof_array(const T& iarray) {
     return (sizeof(iarray) / sizeof(iarray[0]));
 }
 
@@ -512,7 +512,7 @@ Matrix< tData, tRows, tCols >::~Matrix() {
 /// [m0b] Matrix memory allocation/storage assignment.
 template < class tData, size_t tRows, size_t tCols >
 void Matrix< tData, tRows, tCols >::matalloc(void) {
-    const char fcnId[] = "[m0b] matalloc(void)";
+    [[maybe_unused]] const char fcnId[] = "[m0b] matalloc(void)";
     HERE(fcnId);
 
     ij = new tData*[tRows];
@@ -531,7 +531,7 @@ void Matrix< tData, tRows, tCols >::matalloc(void) {
 /// [m1b] Virtual destructor.
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::~Matrix() {
-    const char fcnId[] = "[m1b] ~Matrix()";
+    [[maybe_unused]] const char fcnId[] = "[m1b] ~Matrix()";
     HERE(fcnId);
     // Need to test for the 1x1 case. Might need delete storage/ij.
     if(storage) delete[] storage;
@@ -544,7 +544,7 @@ Matrix< tData, tRows, tCols >::~Matrix() {
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::Matrix(Matrix && R) noexcept :
     ij{ std::move(R.ij) }, storage{ std::move(R.storage) } {
-    const char fcnId[] = "[m6b] Matrix(Matrix && R) noexcept";
+    [[maybe_unused]] const char fcnId[] = "[m6b] Matrix(Matrix && R) noexcept";
     R.ij = nullptr;
     R.storage = nullptr;
     HERE(fcnId);
@@ -563,7 +563,7 @@ Matrix< tData, tRows, tCols >::Matrix(Matrix && R) noexcept :
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >& Matrix< tData, tRows, tCols >::operator =
 (Matrix< tData, tRows, tCols >&& R) noexcept {
-    const char fcnId[] = "[m7b] operator=(Matrix<tData,tRows,tCols>&& R) noexcept";
+    [[maybe_unused]] const char fcnId[] = "[m7b] operator=(Matrix<tData,tRows,tCols>&& R) noexcept";
     HERE(fcnId);
 
     if( this != &R ) {
@@ -583,8 +583,8 @@ Matrix< tData, tRows, tCols >& Matrix< tData, tRows, tCols >::operator =
 
 /// [m2] Default constructor.
 template < class tData, size_t tRows, size_t tCols >
-Matrix< tData, tRows, tCols >::Matrix() { 
-    const char fcnId[] = "[m2] Matrix()";
+Matrix< tData, tRows, tCols >::Matrix() {
+    [[maybe_unused]] const char fcnId[] = "[m2] Matrix()";
     HERE(fcnId);
     matalloc();
 
@@ -599,7 +599,7 @@ Matrix< tData, tRows, tCols >::Matrix() {
 /// [m3] Copy constructor.
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::Matrix(const Matrix & R) {
-    const char fcnId[] = "[m3] Matrix(const Matrix & R)";
+    [[maybe_unused]] const char fcnId[] = "[m3] Matrix(const Matrix & R)";
     matalloc();
 
     // Choosing idiomatic C++ over potential speed
@@ -611,7 +611,7 @@ Matrix< tData, tRows, tCols >::Matrix(const Matrix & R) {
 /// [m4] Copy assignment operator.
 template < class tData, size_t tRows, size_t tCols >
 const Matrix< tData, tRows, tCols >& Matrix< tData, tRows, tCols >::operator=(const Matrix< tData, tRows, tCols > & R) {
-    const char fcnId[] = "[m4] operator=(const Matrix< tData, tRows, tCols > & R)";
+    [[maybe_unused]] const char fcnId[] = "[m4] operator=(const Matrix< tData, tRows, tCols > & R)";
 
     if( this != &R ) {
         // Choosing idiomatic C++ over potential speed
@@ -625,7 +625,7 @@ const Matrix< tData, tRows, tCols >& Matrix< tData, tRows, tCols >::operator=(co
 /// [m8] Memory, i.e. pointer or array, initialize constructor.
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::Matrix (const tData* tArray) {
-    const char fcnId[] = "[m8] Matrix (const tData* tArray)";
+    [[maybe_unused]] const char fcnId[] = "[m8] Matrix (const tData* tArray)";
     HERE(fcnId);
     matalloc();
     // Choosing idiomatic C++ over potential speed
@@ -637,7 +637,7 @@ Matrix< tData, tRows, tCols >::Matrix (const tData* tArray) {
 /// [m9] STL list initialize constructor (C++11).
 template < class tData, size_t tRows, size_t tCols >
 Matrix< tData, tRows, tCols >::Matrix (const std::initializer_list<tData>& l) {
-    const char fcnId[] = "[m9] Matrix (const std::initializer_list<tData>& l)";
+    [[maybe_unused]] const char fcnId[] = "[m9] Matrix (const std::initializer_list<tData>& l)";
     HERE(fcnId);
 
     assert( l.size() <= tRows*tCols );
@@ -654,7 +654,7 @@ Matrix< tData, tRows, tCols >::Matrix (const std::initializer_list<tData>& l) {
 /// [m10] STL initializer_list assignment (C++11).
 template < class tData, size_t tRows, size_t tCols >
 const Matrix< tData, tRows, tCols>& Matrix< tData,tRows,tCols>::operator = (const std::initializer_list<tData>& l) {
-    const char fcnId[] = "[m10] operator = (const std::initializer_list<tData>& l)";
+    [[maybe_unused]] const char fcnId[] = "[m10] operator = (const std::initializer_list<tData>& l)";
     HERE(fcnId);
 
     assert(l.size() <= tRows*tCols);
@@ -668,7 +668,7 @@ const Matrix< tData, tRows, tCols>& Matrix< tData,tRows,tCols>::operator = (cons
 
 template < class tData, size_t tRows, size_t tCols >
 void Matrix< tData, tRows, tCols >::load(const tData* tArray) {
-    const char fcnId[] = "[m11] load(const tData* tArray)";
+    [[maybe_unused]] const char fcnId[] = "[m11] load(const tData* tArray)";
     HERE(fcnId);
     // Choosing idiomatic C++ over potential speed
     // std::memcpy(storage, tArray, sizeof(storage));
@@ -696,7 +696,8 @@ tData & Matrix< tData, tRows, tCols >::operator () (size_t iRowIndex, size_t iCo
 template < class tData, size_t tRows, size_t tCols >
 tData & Matrix< tData, tRows, tCols >::operator () (size_t iIndex) const {
     assert(tRows==1 || tCols==1);
-    if constexpr(tCols == 1) {
+    static size_t tCols_equal_one = (tCols == 1);
+    if(tCols_equal_one) {
         assert(1<=iIndex && iIndex<=tRows);
         return ij[iIndex-1][0];
     } else { // (iRows == 1)
@@ -708,7 +709,7 @@ tData & Matrix< tData, tRows, tCols >::operator () (size_t iIndex) const {
 template < class tData,  size_t tRows,  size_t tCols>
 template < size_t tRows0, size_t tCols0 >
 void Matrix< tData, tRows, tCols >::submatrix(size_t insertRow, size_t insertCol, const Matrix< tData, tRows0, tCols0>& rval) {
-    const char fcnId[] = "[m16] submatrix(size_t insertRow, size_t insertCol, const Matrix< tData, tRows0, tCols0>& rval)";
+    [[maybe_unused]] const char fcnId[] = "[m16] submatrix(size_t insertRow, size_t insertCol, const Matrix< tData, tRows0, tCols0>& rval)";
     HERE(fcnId);
     assert((insertRow        <= tRows) && (insertCol        <= tCols));
     assert((insertRow+tRows0 <= tRows) && (insertCol+tCols0 <= tCols));
@@ -721,9 +722,9 @@ void Matrix< tData, tRows, tCols >::submatrix(size_t insertRow, size_t insertCol
 template < class tData,  size_t tRows,  size_t tCols>
 template < size_t tRows0, size_t tCols0 >
 Matrix< tData, tRows0, tCols0> Matrix< tData, tRows, tCols >::submatrix(size_t insertRow, size_t insertCol) {
-    const char fcnId[] = "[m13] submatrix(size_t insertRow, size_t insertCol)";
+    [[maybe_unused]] const char fcnId[] = "[m13] submatrix(size_t insertRow, size_t insertCol)";
     HERE(fcnId);
-    
+
     assert((insertRow        <= tRows) && (insertCol        <= tCols));
     assert((insertRow+tRows0 <= tRows) && (insertCol+tCols0 <= tCols));
 
@@ -1356,15 +1357,19 @@ typedef  ematrix::Matrix<double,5,5> MATRIX5x5;
 typedef  ematrix::Matrix<double,6,6> MATRIX6x6;
 typedef  ematrix::Matrix<double,7,7> MATRIX7x7;
 typedef  ematrix::Matrix<double,8,8> MATRIX8x8;
+typedef  ematrix::Matrix<double,9,9> MATRIX9x9;
 typedef  ematrix::Matrix<double,15,15> MATRIX15x15;
 
 typedef  ematrix::Matrix<double,2,1> VECTOR2x1;
 typedef  ematrix::Matrix<double,3,1> VECTOR3x1;
-typedef  ematrix::Matrix<double,4,1> QUAT4x1;
+typedef  ematrix::Matrix<double,4,1> VECTOR4x1;
 typedef  ematrix::Matrix<double,5,1> VECTOR5x1;
 typedef  ematrix::Matrix<double,6,1> VECTOR6x1;
 typedef  ematrix::Matrix<double,7,1> VECTOR7x1;
 typedef  ematrix::Matrix<double,8,1> VECTOR8x1;
+typedef  ematrix::Matrix<double,9,1> VECTOR9x1;
 typedef  ematrix::Matrix<double,15,1> VECTOR15x1;
+
+typedef  ematrix::Matrix<double,4,1> QUAT4x1;
 
 #endif // from _EMATRIX_H
